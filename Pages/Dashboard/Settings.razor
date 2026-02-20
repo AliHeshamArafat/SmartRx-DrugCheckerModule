@@ -1,0 +1,705 @@
+@page "/dashboard/settings"
+@layout DashboardLayout
+@inject NavigationManager Navigation
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<div class="settings-page">
+    <!-- Header Section -->
+    <div class="settings-header-container">
+        <div class="settings-header">
+            <div class="settings-header-left">
+                <h1 class="settings-title">Professional Profile</h1>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Section -->
+    <div class="settings-section">
+        <h2 class="section-title">Profile</h2>
+        <div class="form-group">
+            <label class="form-label">Avatar</label>
+            <div class="profile-avatar-section">
+                <div class="avatar-placeholder">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="avatar-icon">
+                        <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <button type="button" class="upload-btn" @onclick="HandleUploadAvatar">Upload</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Name</label>
+            <input type="text" @bind="profileData.Name" class="form-input" placeholder="Enter your name" />
+        </div>
+        <div class="form-group">
+            <label class="form-label">Username</label>
+            <input type="text" @bind="profileData.Username" class="form-input" />
+        </div>
+        <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" @bind="profileData.Email" class="form-input" />
+        </div>
+    </div>
+
+    <!-- Security Section -->
+    <div class="settings-section">
+        <h2 class="section-title">Security</h2>
+        <div class="security-item">
+            <label class="form-label">Password</label>
+            <div class="security-content">
+                <p class="security-description">Update your password through the button below. You will be redirected to a new page and must follow the instructions.</p>
+                <button type="button" class="set-password-btn" @onclick="HandleSetPassword">Set new password</button>
+            </div>
+        </div>
+        <div class="security-item">
+            <label class="form-label">Two-factor authentication</label>
+            <div class="security-content">
+                <p class="security-description">Enable two-factor authentication to add an extra layer of security to your account. When you log in, we'll send a 6-digit code to your email that you'll have to enter to verify it's you.</p>
+                <label class="toggle-switch">
+                    <input type="checkbox" @bind="profileData.TwoFactorEnabled" />
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connected Accounts Section -->
+    <div class="settings-section">
+        <h2 class="section-title">Connected accounts</h2>
+        <p class="section-description">Manage the social media accounts connected to your profile for easy login.</p>
+        <div class="connected-account-item">
+            <div class="account-info">
+                <div class="account-logo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22.56 12.25C22.56 11.47 22.49 10.72 22.36 10H12V14.51H17.92C17.66 15.98 16.88 17.24 15.71 18.09V21.09H19.28C21.36 19.16 22.56 16.04 22.56 12.25Z" fill="#4285F4"/>
+                        <path d="M12 23C15.24 23 17.95 21.93 19.28 19.09L15.71 16.09C14.73 16.72 13.48 17.11 12 17.11C8.87 17.11 6.22 14.96 5.28 12.11H1.55V15.16C2.89 17.89 5.61 20 12 20Z" fill="#34A853"/>
+                        <path d="M5.28 12.11C5.03 11.31 4.89 10.47 4.89 9.61C4.89 8.75 5.03 7.91 5.27 7.11V4.06H1.55C0.68 5.83 0.11 7.89 0.11 9.61C0.11 11.33 0.68 13.39 1.55 15.16L5.28 12.11Z" fill="#FBBC05"/>
+                        <path d="M12 5.89C13.62 5.89 15.06 6.38 16.21 7.32L19.36 4.17C17.95 2.92 15.24 2 12 2C5.61 2 2.89 4.11 1.55 6.84L5.28 9.89C6.22 7.04 8.87 4.89 12 4.89Z" fill="#EA4335"/>
+                    </svg>
+                </div>
+                <div class="account-details">
+                    <span class="account-name">Google</span>
+                    <span class="account-status">Connected</span>
+                </div>
+            </div>
+            <button type="button" class="disconnect-btn" @onclick="HandleDisconnectGoogle">Disconnect</button>
+        </div>
+    </div>
+
+    <!-- Sessions & Devices Section -->
+    <div class="settings-section">
+        <div class="sessions-header">
+            <div class="sessions-header-left">
+                <h2 class="section-title">Sessions & devices</h2>
+                <div class="info-text">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="info-icon">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 16V12M12 8H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>For security reasons, each account is limited to three connected devices.</span>
+                </div>
+            </div>
+            <span class="device-count">@connectedDevices.Count/@maxDevices devices</span>
+        </div>
+        <div class="devices-table-container">
+            <table class="devices-table">
+                <thead>
+                    <tr>
+                        <th>OS</th>
+                        <th>Browser</th>
+                        <th>Location</th>
+                        <th>Last session</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var device in connectedDevices)
+                    {
+                        <tr>
+                            <td>@device.OS</td>
+                            <td>@device.Browser</td>
+                            <td>@device.Location</td>
+                            <td>
+                                @if (device.IsCurrentDevice)
+                                {
+                                    <span class="current-device-badge">• This device</span>
+                                }
+                                else
+                                {
+                                    <span>@device.LastSession</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!device.IsCurrentDevice)
+                                {
+                                    <button type="button" class="delete-device-btn" @onclick="() => HandleDeleteDevice(device)">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M3 6H5H21M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M10 11V17M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Delete Account Section -->
+    <div class="settings-section delete-account-section">
+        <button type="button" class="delete-account-btn" disabled>Delete Account</button>
+        <p class="delete-account-note">
+            Note: As you have an active paid plan, you can't delete your account directly. Please contact 
+            <a href="mailto:support@smartrx.com" class="support-link">support@smartrx.com</a> for assistance.
+        </p>
+    </div>
+</div>
+
+<style>
+    .settings-page {
+        padding: 4rem;
+        min-height: calc(100vh - 150px);
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: transparent;
+        position: relative;
+    }
+
+    .settings-header-container {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        border-radius: 12px;
+        padding: 1.5rem 2rem;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+    }
+
+    .settings-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .settings-header-left {
+        flex: 1;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #4994FF;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 1rem;
+        transition: color 0.2s ease;
+    }
+
+    .back-link:hover {
+        color: #357abd;
+    }
+
+    .back-link svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .settings-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: #111827;
+        margin: 0;
+    }
+
+    .settings-section {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        border-radius: 12px;
+        padding: 2rem;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #111827;
+        margin: 0 0 1.5rem 0;
+    }
+
+    .section-description {
+        font-size: 14px;
+        color: #6b7280;
+        margin: 0 0 1.5rem 0;
+    }
+
+    .profile-avatar-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .avatar-placeholder {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: #E0F2FE;
+        border: 2px solid #BAE6FD;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .avatar-icon {
+        width: 32px;
+        height: 32px;
+        color: #0EA5E9;
+    }
+
+    .upload-btn {
+        padding: 0.75rem 1.5rem;
+        background: #4994FF;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .upload-btn:hover {
+        background: #357abd;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        color: #111827;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        transition: all 0.3s ease;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #4994FF;
+        box-shadow: 0 0 0 3px rgba(74, 144, 255, 0.1);
+    }
+
+    .security-item {
+        margin-bottom: 2rem;
+    }
+
+    .security-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .security-item .form-label {
+        margin-bottom: 0.75rem;
+    }
+
+    .security-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 2rem;
+    }
+
+    .security-description {
+        flex: 1;
+        font-size: 14px;
+        color: #6b7280;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .set-password-btn {
+        padding: 0.75rem 1.5rem;
+        background: #4994FF;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        white-space: nowrap;
+    }
+
+    .set-password-btn:hover {
+        background: #357abd;
+    }
+
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 48px;
+        height: 24px;
+        flex-shrink: 0;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #d1d5db;
+        transition: 0.3s;
+        border-radius: 24px;
+    }
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+        background-color: #4994FF;
+    }
+
+    .toggle-switch input:checked + .toggle-slider:before {
+        transform: translateX(24px);
+    }
+
+    .connected-account-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .account-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .account-logo {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .account-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .account-name {
+        font-size: 16px;
+        font-weight: 500;
+        color: #111827;
+    }
+
+    .account-status {
+        font-size: 14px;
+        color: #4994FF;
+        font-weight: 500;
+    }
+
+    .disconnect-btn {
+        padding: 0.5rem 1rem;
+        background: transparent;
+        color: #6b7280;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .disconnect-btn:hover {
+        background: #f9fafb;
+        border-color: #d1d5db;
+    }
+
+    .sessions-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+    }
+
+    .sessions-header-left {
+        flex: 1;
+    }
+
+    .info-text {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 14px;
+        color: #6b7280;
+        margin-top: 0.5rem;
+    }
+
+    .info-icon {
+        width: 16px;
+        height: 16px;
+        color: #6b7280;
+        flex-shrink: 0;
+    }
+
+    .device-count {
+        font-size: 14px;
+        font-weight: 500;
+        color: #111827;
+    }
+
+    .devices-table-container {
+        overflow-x: auto;
+    }
+
+    .devices-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .devices-table thead {
+        background: #f9fafb;
+    }
+
+    .devices-table th {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        font-size: 14px;
+        font-weight: 600;
+        color: #111827;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .devices-table td {
+        padding: 1rem;
+        font-size: 14px;
+        color: #374151;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .devices-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .current-device-badge {
+        color: #10B981;
+        font-weight: 500;
+    }
+
+    .delete-device-btn {
+        background: transparent;
+        border: none;
+        color: #EF4444;
+        cursor: pointer;
+        padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s ease;
+    }
+
+    .delete-device-btn:hover {
+        color: #DC2626;
+    }
+
+    .delete-device-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .delete-account-section {
+        border: 1.5px solid #FFC9C9;
+    }
+
+    .delete-account-btn {
+        width: 200px;
+        height: 40px;
+        padding: 0;
+        background: #ffffff;
+        color: #9ca3af;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: not-allowed;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        margin-bottom: 0.75rem;
+    }
+
+    .delete-account-note {
+        font-size: 14px;
+        color: #6b7280;
+        margin: 0;
+        line-height: 1.5;
+        font-weight: 700;
+    }
+
+    .support-link {
+        color: #4994FF;
+        text-decoration: none;
+    }
+
+    .support-link:hover {
+        text-decoration: underline;
+    }
+
+    @@media (max-width: 768px) {
+        .settings-page {
+            padding: 2rem 1rem;
+        }
+
+        .settings-header-container {
+            padding: 1rem 1.5rem;
+        }
+
+        .settings-section {
+            padding: 1.5rem;
+        }
+
+        .security-content {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .sessions-header {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .devices-table {
+            font-size: 12px;
+        }
+
+        .devices-table th,
+        .devices-table td {
+            padding: 0.75rem 0.5rem;
+        }
+    }
+</style>
+
+@code {
+    private class ProfileData
+    {
+        public string Name { get; set; } = "";
+        public string Username { get; set; } = "omarmohamedl";
+        public string Email { get; set; } = "omarmohamed@gmail.com";
+        public bool TwoFactorEnabled { get; set; } = false;
+    }
+
+    private class ConnectedDevice
+    {
+        public string OS { get; set; } = "";
+        public string Browser { get; set; } = "";
+        public string Location { get; set; } = "";
+        public string LastSession { get; set; } = "";
+        public bool IsCurrentDevice { get; set; }
+    }
+
+    private ProfileData profileData = new();
+    private int maxDevices = 3;
+
+    private List<ConnectedDevice> connectedDevices = new()
+    {
+        new ConnectedDevice
+        {
+            OS = "Windows 10",
+            Browser = "Edge 144",
+            Location = "185.107.28.53",
+            LastSession = "• This device",
+            IsCurrentDevice = true
+        },
+        new ConnectedDevice
+        {
+            OS = "Windows 10",
+            Browser = "Chrome 134",
+            Location = "176.87.229.168",
+            LastSession = "2 hours ago",
+            IsCurrentDevice = false
+        },
+        new ConnectedDevice
+        {
+            OS = "Windows 10",
+            Browser = "Chrome 134",
+            Location = "176.87.229.168",
+            LastSession = "2 hours ago",
+            IsCurrentDevice = false
+        }
+    };
+
+    private void HandleUploadAvatar()
+    {
+        // TODO: Implement avatar upload functionality
+        Console.WriteLine("Upload avatar clicked");
+    }
+
+    private void HandleSetPassword()
+    {
+        // TODO: Implement password reset redirect
+        Console.WriteLine("Set new password clicked");
+    }
+
+    private void HandleDisconnectGoogle()
+    {
+        // TODO: Implement Google account disconnect
+        Console.WriteLine("Disconnect Google clicked");
+    }
+
+    private void HandleDeleteDevice(ConnectedDevice device)
+    {
+        // TODO: Implement device deletion
+        connectedDevices.Remove(device);
+        StateHasChanged();
+    }
+}

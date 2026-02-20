@@ -1,0 +1,605 @@
+@page "/signup"
+@layout AuthLayout
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-left">
+            <div class="auth-logo">
+                <img src="images/logo.png" alt="SmartRX" />
+            </div>
+
+            <div class="auth-content">
+                <h1 class="auth-title">Sign up</h1>
+                <p class="auth-subtitle">Sign up to enjoy the features of SmartRx.</p>
+
+                <button type="button" class="google-button" @onclick="HandleGoogleSignIn">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17.64 9.20454C17.64 8.56636 17.5827 7.95272 17.4764 7.36363H9V10.845H13.8436C13.635 11.97 13.0009 12.9231 12.0477 13.5613V15.8195H14.9564C16.6582 14.2527 17.64 11.9454 17.64 9.20454Z" fill="#4285F4"/>
+                        <path d="M9 18C11.43 18 13.467 17.1941 14.9564 15.8195L12.0477 13.5613C11.2418 14.1013 10.2109 14.4204 9 14.4204C6.65455 14.4204 4.67182 12.8372 3.96409 10.71H0.957275V13.0418C2.43818 15.9831 5.48182 18 9 18Z" fill="#34A853"/>
+                        <path d="M3.96409 10.71C3.78409 10.17 3.68182 9.59318 3.68182 9C3.68182 8.40681 3.78409 7.83 3.96409 7.29V4.95818H0.957273C0.347727 6.17318 0 7.54772 0 9C0 10.4523 0.347727 11.8268 0.957273 13.0418L3.96409 10.71Z" fill="#FBBC05"/>
+                        <path d="M9 3.57955C10.3214 3.57955 11.5077 4.03364 12.4405 4.92545L15.0218 2.34409C13.4632 0.891818 11.4259 0 9 0C5.48182 0 2.43818 2.01682 0.957275 4.95818L3.96409 7.29C4.67182 5.16273 6.65455 3.57955 9 3.57955Z" fill="#EA4335"/>
+                    </svg>
+                    Sign in with Google
+                </button>
+
+                <div class="auth-divider">
+                    <span>Or</span>
+                </div>
+
+                <EditForm EditContext="@editContext" OnValidSubmit="HandleSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary style="display:none;" />
+
+                    <div class="auth-form">
+                        <div class="form-group">
+                            <label class="form-label" for="signup-name">Your Name</label>
+                            <InputText id="signup-name" class="@($"form-input {GetValidationClass(() => registration.Name)}")" @bind-Value="registration.Name" />
+                            @if (formSubmitted)
+                            {
+                                <ValidationMessage For="@(() => registration.Name)" class="validation-message" />
+                            }
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="signup-email">Email</label>
+                            <InputText id="signup-email" class="@($"form-input {GetValidationClass(() => registration.Email)}")" @bind-Value="registration.Email" />
+                            @if (formSubmitted)
+                            {
+                                <ValidationMessage For="@(() => registration.Email)" class="validation-message" />
+                            }
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="signup-password">Password</label>
+                            <div class="@($"password-wrapper {GetPasswordWrapperValidationClass()}")">
+                                <InputText id="signup-password"
+                                           class="form-input"
+                                           type="@passwordInputType"
+                                           @bind-Value="registration.Password" />
+                                <button type="button" class="password-toggle" @onclick="TogglePasswordVisibility" aria-label="Toggle password visibility">
+                                    <img src="images/@(isPasswordVisible ? "eye-off.png" : "eye-on.png")" alt="@(isPasswordVisible ? "Hide password" : "Show password")" class="eye-icon" />
+                                </button>
+                            </div>
+                            @if (formSubmitted)
+                            {
+                                <ValidationMessage For="@(() => registration.Password)" class="validation-message" />
+                            }
+                        </div>
+
+                        <div class="form-group phone-group">
+                            <label class="form-label" for="signup-phone">Phone</label>
+                            <div class="phone-input-wrapper">
+                                <div class="phone-prefix">
+                                    <img src="@GetFlagImage()" alt="@GetCountryName()" class="flag-icon" />
+                                    <select class="country-code-select" @bind="registration.CountryCode" @bind:after="StateHasChanged">
+                                        <option value="+20">+20</option>
+                                        <option value="+966">+966</option>
+                                    </select>
+                                </div>
+                                <InputText id="signup-phone" class="@($"form-input phone-input {GetValidationClass(() => registration.Phone)}")" @bind-Value="registration.Phone" placeholder="123 456 789" />
+                            </div>
+                            @if (formSubmitted)
+                            {
+                                <ValidationMessage For="@(() => registration.Phone)" class="validation-message" />
+                            }
+                        </div>
+
+                        <div class="form-row form-row-between">
+                            <label class="checkbox-label">
+                                <InputCheckbox @bind-Value="registration.AcceptTerms" />
+                                <span>I Agree With <a href="#">Terms &amp; Conditions</a></span>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="primary-button" disabled="@(!IsFormValid())">Sign up</button>
+                    </div>
+                </EditForm>
+
+                <div class="auth-divider">
+                    <span>Or</span>
+                </div>
+
+                <p class="auth-footer-text">
+                    Already have an account?
+                    <a href="/login">Sign in</a>
+                </p>
+            </div>
+        </div>
+
+        <div class="auth-right">
+            <img src="images/robot 2.avif" alt="SmartRX Robot Doctor" class="auth-robot-image" />
+        </div>
+    </div>
+</div>
+
+<style>
+    .auth-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f5f5f5;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        padding: 2rem;
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 1100px;
+        background: #ffffff;
+        border-radius: 24px;
+        display: flex;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(15, 23, 42, 0.15);
+    }
+
+    .auth-left {
+        flex: 1;
+        padding: 3rem 3.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .auth-logo img {
+        height: 40px;
+        width: auto;
+    }
+
+    .auth-content {
+        max-width: 420px;
+    }
+
+    .auth-title {
+        font-size: 40px;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+        color: #111827;
+    }
+
+    .auth-subtitle {
+        font-size: 14px;
+        color: #6b7280;
+        margin: 0 0 2rem 0;
+    }
+
+    .auth-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+    .form-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #4b5563;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.85rem 0.9rem;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        font-size: 14px;
+        font-family: inherit;
+        color: #111827;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        background: #f9fafb;
+    }
+
+    .form-input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3);
+        background: #ffffff;
+    }
+
+    .form-input.invalid {
+        border-color: #ef4444;
+        background: #ffffff;
+    }
+
+    .form-input.invalid:focus {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.3);
+    }
+
+    .validation-message {
+        font-size: 11px;
+        color: #ef4444;
+        margin-top: 0.25rem;
+        display: block;
+        min-height: 1rem;
+    }
+
+    .password-wrapper {
+        display: flex;
+        align-items: center;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        background: #f9fafb;
+        padding-right: 0.25rem;
+    }
+
+    .password-wrapper:focus-within {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3);
+        background: #ffffff;
+    }
+
+    .password-wrapper.invalid {
+        border-color: #ef4444;
+        background: #ffffff;
+    }
+
+    .password-wrapper.invalid:focus-within {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.3);
+    }
+
+    .password-wrapper .form-input {
+        border: none;
+        box-shadow: none;
+        background: transparent;
+    }
+
+    .password-toggle {
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        padding: 0.25rem 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .eye-icon {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+    }
+
+    .phone-group .phone-input-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .phone-prefix {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.7rem 0.85rem;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        background: #f9fafb;
+        font-size: 13px;
+    }
+
+    .phone-prefix .flag-icon {
+        width: 20px;
+        height: 15px;
+        object-fit: cover;
+        border-radius: 2px;
+    }
+
+    .country-code-select {
+        border: none;
+        background: transparent;
+        color: #4b5563;
+        font-size: 13px;
+        font-family: inherit;
+        outline: none;
+        cursor: pointer;
+    }
+
+    .phone-input {
+        flex: 1;
+    }
+
+    .checkbox-label {
+        display: inline-flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        font-size: 13px;
+        color: #4b5563;
+    }
+
+    .checkbox-label input {
+        margin-top: 0.15rem;
+    }
+
+    .checkbox-label a {
+        color: #2563eb;
+        text-decoration: none;
+    }
+
+    .checkbox-label a:hover {
+        text-decoration: underline;
+    }
+
+    .primary-button {
+        margin-top: 0.5rem;
+        width: 100%;
+        padding: 0.9rem 1rem;
+        border-radius: 8px;
+        border: none;
+        background: #2563eb;
+        color: white;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+    }
+
+    .primary-button:hover:not(:disabled) {
+        background: #1d4ed8;
+        transform: translateY(-1px);
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
+    }
+
+    .primary-button:active:not(:disabled) {
+        transform: translateY(0);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+
+    .primary-button:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        box-shadow: none;
+        opacity: 0.6;
+    }
+
+    .secondary-button {
+        padding: 0.9rem 1.5rem;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        background: #ffffff;
+        color: #111827;
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .secondary-button:hover {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+    }
+
+    .auth-divider {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        font-size: 12px;
+        color: #9ca3af;
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #e5e7eb;
+    }
+
+    .google-button {
+        width: 100%;
+        padding: 0.9rem 1rem;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        background: #ffffff;
+        color: #111827;
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .google-button:hover {
+        background: #f9fafb;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .google-button:active {
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .auth-footer-text {
+        font-size: 13px;
+        color: #6b7280;
+        margin: 0;
+    }
+
+    .auth-footer-text a {
+        color: #2563eb;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .auth-footer-text a:hover {
+        text-decoration: underline;
+    }
+
+    .auth-right {
+        flex: 1.1;
+        position: relative;
+        background: radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.2), transparent 55%), 
+                    radial-gradient(circle at 70% 70%, rgba(249, 115, 22, 0.25), transparent 55%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .auth-robot-image {
+        max-width: 100%;
+        height: auto;
+        object-fit: contain;
+    }
+
+    @@media (max-width: 992px) {
+        .auth-card {
+            flex-direction: column;
+        }
+
+        .auth-left {
+            padding: 2.5rem 2rem;
+        }
+
+        .auth-right {
+            padding: 2rem 1.5rem;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .auth-page {
+            padding: 1.5rem 1rem;
+        }
+
+        .auth-card {
+            border-radius: 16px;
+        }
+
+        .auth-left {
+            padding: 2rem 1.5rem;
+        }
+
+        .auth-title {
+            font-size: 32px;
+        }
+
+        .auth-right {
+            padding: 1.5rem;
+        }
+    }
+</style>
+
+@code {
+    private RegistrationModel registration = new();
+    private bool isPasswordVisible;
+    private EditContext? editContext;
+    private bool formSubmitted = false;
+
+    private string passwordInputType => isPasswordVisible ? "text" : "password";
+
+    protected override void OnInitialized()
+    {
+        editContext = new EditContext(registration);
+        editContext.OnFieldChanged += (sender, e) => StateHasChanged();
+    }
+
+    private void TogglePasswordVisibility()
+    {
+        isPasswordVisible = !isPasswordVisible;
+    }
+
+    private string GetValidationClass<T>(System.Linq.Expressions.Expression<Func<T>> expression)
+    {
+        if (!formSubmitted) return "";
+
+        if (editContext != null)
+        {
+            var fieldIdentifier = FieldIdentifier.Create(expression);
+            editContext.Validate();
+            if (editContext.GetValidationMessages(fieldIdentifier).Any())
+            {
+                return "invalid";
+            }
+        }
+        return "";
+    }
+
+    private string GetPasswordWrapperValidationClass()
+    {
+        if (!formSubmitted) return "";
+        
+        if (editContext != null)
+        {
+            var fieldIdentifier = FieldIdentifier.Create(() => registration.Password);
+            editContext.Validate();
+            if (editContext.GetValidationMessages(fieldIdentifier).Any())
+            {
+                return "invalid";
+            }
+        }
+        return "";
+    }
+
+    private bool IsFormValid()
+    {
+        if (editContext == null) return false;
+        
+        // Check if Terms & Conditions is checked
+        if (!registration.AcceptTerms) return false;
+        
+        // Validate the form fields
+        return editContext.Validate();
+    }
+
+    private void HandleSubmit()
+    {
+        formSubmitted = true;
+        if (editContext != null && editContext.Validate())
+        {
+            Console.WriteLine($"Sign up: {registration.Email}, Phone: {registration.CountryCode} {registration.Phone}");
+            // Here you would complete registration
+        }
+        StateHasChanged();
+    }
+
+    private void HandleGoogleSignIn()
+    {
+        Console.WriteLine("Google sign in clicked");
+        // Implement Google sign in logic here
+    }
+
+    private string GetFlagImage()
+    {
+        return registration.CountryCode == "+966" ? "images/KSA.webp" : "images/EgyptFlag.png";
+    }
+
+    private string GetCountryName()
+    {
+        return registration.CountryCode == "+966" ? "Saudi Arabia" : "Egypt";
+    }
+
+    public class RegistrationModel
+    {
+        [Required]
+        public string Name { get; set; } = string.Empty;
+
+        [Required, EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required, MinLength(6)]
+        public string Password { get; set; } = string.Empty;
+
+        public string CountryCode { get; set; } = "+20";
+
+        [Required]
+        public string Phone { get; set; } = string.Empty;
+
+        public bool AcceptTerms { get; set; }
+    }
+}
+
+

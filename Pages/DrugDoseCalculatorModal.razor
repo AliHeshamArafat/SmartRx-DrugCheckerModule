@@ -1,0 +1,984 @@
+@using SmartRx_DrugChecker.Services
+
+@if (IsOpen)
+{
+    <div class="calculator-modal-backdrop" @onclick="HandleBackdropClick">
+        <div class="calculator-modal" @onclick:stopPropagation="true">
+            <div class="calculator-modal-header">
+                <h3 class="calculator-modal-title">Drug Details</h3>
+                <button type="button" class="calculator-modal-close" @onclick="OnClose">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="calculator-modal-body">
+                <!-- Note banner -->
+                <div class="drug-note-banner">
+                    <div class="drug-note-icon">
+                        <img src="images/WarningYellow.png" alt="Warning" class="warning-icon" />
+                    </div>
+                    <div class="drug-note-text">
+                        <div class="drug-note-title">Note</div>
+                        <div class="drug-note-subtitle">This is an AI-Generated Recommendation</div>
+                    </div>
+                </div>
+
+                <!-- Drug header card -->
+                <div class="drug-main-card">
+                    <div class="drug-main-header">
+                        <div class="drug-main-text">
+                            <div class="drug-main-name">
+                               💊 @(!string.IsNullOrWhiteSpace(DrugName) ? DrugName : DrugDetails?.Form ?? "Augmentin 1000 mg")
+                            </div>
+                            <div class="drug-main-subtitle">
+                                @(DrugDetails != null && !string.IsNullOrWhiteSpace(DrugDetails.GenericName) ? $"({DrugDetails.GenericName})" : "(Amoxicillin 875 mg / Clavulanic Acid 125 mg)")
+                            </div>
+                            <div class="drug-main-meta">
+                                @(DrugDetails != null && !string.IsNullOrWhiteSpace(DrugDetails.Form) ? DrugDetails.Form : "Film-Coated Tablets – 14 Tablets")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Standard dosing section -->
+                <div class="drug-section-card">
+                    <div class="drug-section-header primary">
+                        <div class="drug-section-header-left">
+                                <img src="images/Capsule.png" alt="Capsule" class="capsule-icon" />
+                            <div>
+                                <div class="drug-section-title">Standard Dosing</div>
+                                <div class="drug-section-subtitle">Based on typical adult dosing</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="drug-standard-grid">
+                        @if (DrugDetails != null && DrugDetails.Indications.Any())
+                        {
+                            <div class="drug-standard-column indications-column">
+                                <div class="drug-standard-label">✔ Indications</div>
+                                <ul class="drug-standard-list">
+                                    @foreach (var indication in DrugDetails.Indications)
+                                    {
+                                        <li>@indication</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="drug-standard-column indications-column">
+                                <div class="drug-standard-label">✔ Indications</div>
+                                <ul class="drug-standard-list">
+                                    <li>Severe respiratory tract infections (e.g. pneumonia, sinusitis)</li>
+                                    <li>Skin &amp; soft tissue infections</li>
+                                    <li>Severe dental abscesses</li>
+                                </ul>
+                            </div>
+                        }
+                        <div class="drug-standard-column-row">
+                            <div class="drug-standard-column">
+                                <div class="drug-standard-label">
+                                    <img src="images/Clock.png" alt="Clock" class="label-icon" />
+                                    Frequency
+                                </div>
+                                <div class="drug-standard-value">@(DrugDetails?.Frequency ?? "Every 12 hours")</div>
+                            </div>
+                            <div class="drug-standard-column">
+                                <div class="drug-standard-label">
+                                    <img src="images/Capsule.png" alt="Capsule" class="label-icon" />
+                                    Dose form
+                                </div>
+                                <div class="drug-standard-value">@(DrugDetails?.DoseForm ?? "1000 mg film-coated tablet")</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="drug-dose-table">
+                        <div class="drug-dose-table-header">
+                            <div>Dose</div>
+                            <div>Calculated Dose</div>
+                            <div>Frequency</div>
+                            <div>Max Daily</div>
+                        </div>
+                        @if (DrugDetails != null && DrugDetails.Doses.Any())
+                        {
+                            @foreach (var (dose, index) in DrugDetails.Doses.Select((d, i) => (d, i)))
+                            {
+                                <div class="drug-dose-row @(index > 0 ? "muted" : "")">
+                                    <div>
+                                        <div class="drug-dose-row-title">@dose.Indication</div>
+                                        @if (!string.IsNullOrWhiteSpace(dose.IndicationSubtitle))
+                                        {
+                                            <div class="drug-dose-row-subtitle">@dose.IndicationSubtitle</div>
+                                        }
+                                    </div>
+                                    <div class="drug-dose-cell">@dose.Dose</div>
+                                    <div class="drug-dose-cell">@dose.Frequency</div>
+                                    <div class="drug-dose-cell">@dose.MaxDaily</div>
+                                    <button type="button" class="drug-dose-expand">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                             xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M6 9L12 15L18 9" stroke="#4B5563" stroke-width="2" stroke-linecap="round"
+                                                  stroke-linejoin="round" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="drug-dose-row">
+                                <div>
+                                    <div class="drug-dose-row-title">Severe Infections of the Respiratory Tract</div>
+                                    <div class="drug-dose-row-subtitle">e.g. Pneumonia, Sinusitis</div>
+                                </div>
+                                <div class="drug-dose-cell">1000 mg</div>
+                                <div class="drug-dose-cell">Every 12 hours</div>
+                                <div class="drug-dose-cell">2000 mg</div>
+                                <button type="button" class="drug-dose-expand">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                         xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M6 9L12 15L18 9" stroke="#4B5563" stroke-width="2" stroke-linecap="round"
+                                              stroke-linejoin="round" />
+                                    </svg>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Special population adjustments -->
+                @if (DrugDetails != null && DrugDetails.PopulationAdjustments.Any())
+                {
+                    <div class="drug-section-card">
+                        <div class="drug-section-header">
+                            <div class="drug-section-header-left">
+                                    <img src="images/People.png" alt="People" class="people-icon" />
+                                <div>
+                                    <div class="drug-section-title">Special Population Adjustments</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @foreach (var adjustment in DrugDetails.PopulationAdjustments)
+                        {
+                            <div class="drug-adjustment-block">
+                                <div class="drug-adjustment-title-container">
+                                    <div class="drug-adjustment-title with-icon">
+                                        @if (!string.IsNullOrWhiteSpace(adjustment.Icon))
+                                        {
+                                            <img src="@adjustment.Icon" alt="@adjustment.Type" class="drop-icon" />
+                                        }
+                                        <span>@adjustment.Type</span>
+                                    </div>
+                                </div>
+                                <div class="drug-adjustment-card-wrapper">
+                                    @if (!string.IsNullOrWhiteSpace(adjustment.CautionTitle))
+                                    {
+                                        <div class="hepatic-caution-section">
+                                            <div class="hepatic-caution-title">
+                                                <img src="images/WarningYellow.png" alt="Warning" class="warning-icon-small" />
+                                                <span>@adjustment.CautionTitle</span>
+                                            </div>
+                                            @if (!string.IsNullOrWhiteSpace(adjustment.CautionText))
+                                            {
+                                                <div class="hepatic-monitor-text">
+                                                    @adjustment.CautionText
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(adjustment.ContraindicatedText))
+                                    {
+                                        <div class="drug-adjustment-contraindicated-container">
+                                            <div class="drug-adjustment-status red">
+                                                <img src="images/Disallowed.png" alt="Disallowed" class="status-icon" />
+                                                @adjustment.ContraindicatedText
+                                            </div>
+                                        </div>
+                                    }
+                                    @foreach (var card in adjustment.Cards)
+                                    {
+                                        <div class="drug-adjustment-card @(card.StatusColor == "red" ? "red-border" : card.StatusColor == "green" ? "green-border" : "")">
+                                            @if (!string.IsNullOrWhiteSpace(card.Badge))
+                                            {
+                                                <div class="drug-adjustment-badge @card.StatusColor">@card.Badge</div>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(card.Status))
+                                            {
+                                                <div class="drug-adjustment-status @card.StatusColor">
+                                                    <img src="@(card.StatusColor == "red" ? "images/Disallowed.png" : "images/Allowed.png")" alt="@card.Status" class="status-icon" />
+                                                    @card.Status
+                                                </div>
+                                            }
+                                            @if (card.Notes.Any())
+                                            {
+                                                <ul>
+                                                    @foreach (var note in card.Notes)
+                                                    {
+                                                        <li>@note</li>
+                                                    }
+                                                </ul>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <!-- Fallback: Show default content if no data provided -->
+                    <div class="drug-section-card">
+                        <div class="drug-section-header">
+                            <div class="drug-section-header-left">
+                                    <img src="images/People.png" alt="People" class="people-icon" />
+                                <div>
+                                    <div class="drug-section-title">Special Population Adjustments</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="drug-adjustment-block">
+                            <div class="drug-adjustment-title-container">
+                                <div class="drug-adjustment-title with-icon">
+                                    <img src="images/drop.png" alt="Drop" class="drop-icon" />
+                                    <span>Renal Impairment</span>
+                                </div>
+                            </div>
+                            <div class="drug-adjustment-card-wrapper">
+                                <div class="drug-adjustment-card red-border">
+                                    <div class="drug-adjustment-badge red">CrCl &lt; 30 mL/min</div>
+                                    <div class="drug-adjustment-status red">
+                                        <img src="images/Disallowed.png" alt="Disallowed" class="status-icon" />
+                                        Contraindicated
+                                    </div>
+                                    <ul>
+                                        <li>Do NOT use 875 mg strength</li>
+                                        <li>Use lower strengths (250 mg or 500 mg) for dose adjustment</li>
+                                    </ul>
+                                </div>
+                                <div class="drug-adjustment-card green-border">
+                                    <div class="drug-adjustment-badge green">CrCl ≥ 30 mL/min</div>
+                                    <div class="drug-adjustment-status green">
+                                        <img src="images/Allowed.png" alt="Allowed" class="status-icon" />
+                                        No dosage adjustment required
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Administration instructions -->
+                <div class="drug-section-card">
+                    <div class="drug-section-header">
+                        <div class="drug-section-header-left">
+                                <img src="images/Utensils.png" alt="Utensils" class="utensils-icon" />
+                            <div>
+                                <div class="drug-section-title">Administration Instructions</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <ul class="drug-admin-list">
+                        @if (DrugDetails != null && DrugDetails.AdministrationInstructions.Any())
+                        {
+                            @foreach (var instruction in DrugDetails.AdministrationInstructions)
+                            {
+                                <li>@instruction</li>
+                            }
+                        }
+                        else
+                        {
+                            <li>Take at the start of a meal (better absorption &amp; less GI upset)</li>
+                            <li>Swallow tablet whole with a full glass of water</li>
+                            <li>Do not chew or crush the tablet</li>
+                            <li>Space doses evenly (~12 hours apart)</li>
+                        }
+                    </ul>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(CalculatorData))
+                {
+                    <div class="drug-extra-info">
+                        @CalculatorData
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public string? DrugName { get; set; }
+
+    [Parameter]
+    public string? CalculatorData { get; set; }
+
+    [Parameter]
+    public DrugCalculatorDetails? DrugDetails { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Inject]
+    private ModalStateService? ModalState { get; set; }
+
+    // Data models for drug calculator
+    public class DrugCalculatorDetails
+    {
+        public string GenericName { get; set; } = "";
+        public string Form { get; set; } = "";
+        public string Frequency { get; set; } = "";
+        public string DoseForm { get; set; } = "";
+        public List<string> Indications { get; set; } = new();
+        public List<DoseInfo> Doses { get; set; } = new();
+        public List<PopulationAdjustment> PopulationAdjustments { get; set; } = new();
+        public List<string> AdministrationInstructions { get; set; } = new();
+    }
+
+    public class DoseInfo
+    {
+        public string Indication { get; set; } = "";
+        public string IndicationSubtitle { get; set; } = "";
+        public string Dose { get; set; } = "";
+        public string Frequency { get; set; } = "";
+        public string MaxDaily { get; set; } = "";
+    }
+
+    public class PopulationAdjustment
+    {
+        public string Type { get; set; } = ""; // Renal, Hepatic, Hemodialysis
+        public string Icon { get; set; } = "";
+        public List<AdjustmentCard> Cards { get; set; } = new();
+        public string? CautionTitle { get; set; }
+        public string? CautionText { get; set; }
+        public string? ContraindicatedText { get; set; }
+    }
+
+    public class AdjustmentCard
+    {
+        public string Badge { get; set; } = "";
+        public string Status { get; set; } = ""; // Allowed, Contraindicated, Use with caution
+        public string StatusColor { get; set; } = ""; // green, red
+        public List<string> Notes { get; set; } = new();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (ModalState != null)
+        {
+            ModalState.IsModalOpen = IsOpen;
+        }
+        base.OnParametersSet();
+    }
+
+    private async Task HandleBackdropClick()
+    {
+        if (OnClose.HasDelegate)
+        {
+            await OnClose.InvokeAsync(null);
+        }
+    }
+}
+
+<style>
+    .calculator-modal-backdrop {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: rgba(15, 23, 42, 0.35);
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        z-index: 9999 !important;
+        overflow: hidden;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .calculator-modal {
+        width: min(960px, 100% - 2.5rem);
+        background: #ffffff;
+        border-radius: 18px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35);
+        padding: 1.75rem 1.75rem 1.5rem;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        border: 1px solid #E5E7EB;
+        max-height: calc(100vh - 5.5rem);
+        margin: 4.5rem auto 1.5rem;
+        overflow-y: auto;
+    }
+
+    .calculator-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+
+    .calculator-modal-title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .calculator-modal-close {
+        background: transparent;
+        border: none;
+        padding: 0.25rem;
+        cursor: pointer;
+        color: #6B7280;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .calculator-modal-close:hover {
+        background: #F3F4F6;
+        color: #111827;
+    }
+
+    .calculator-modal-body {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .drug-note-banner {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        background: #FFFBEB;
+        border: 1px solid #FEF3C7;
+    }
+
+    .drug-note-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        background: #FEF3C7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .warning-icon {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+    }
+
+    .drug-note-title {
+        font-size: 16px;
+        line-height: 24px;
+        font-weight: semibold;
+        color: black;
+    }
+
+    .drug-note-subtitle {
+        font-size: 0.85rem;
+        color: #92400E;
+    }
+
+    .drug-main-card {
+        padding: 1.25rem 1.25rem 1.1rem;
+        border-radius: 16px;
+        border: 1px solid #E5E7EB;
+        background: #FFFFFF;
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.03);
+    }
+
+    .drug-main-header {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .drug-main-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #EEF2FF, #DBEAFE);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+
+    .drug-main-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .drug-main-subtitle {
+        font-size: 0.85rem;
+        color: #4B5563;
+    }
+
+    .drug-main-meta {
+        font-size: 0.8rem;
+        color: #6B7280;
+        margin-top: 0.15rem;
+    }
+
+    .drug-section-card {
+        margin-top: 0.75rem;
+        padding: 1.1rem 1.25rem 1.25rem;
+        border-radius: 16px;
+        border: 1px solid #E5E7EB;
+        background: #EFF6FF;
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.03);
+    }
+
+    .drug-section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.9rem;
+    }
+
+    .drug-section-header.primary {
+        margin-bottom: 1.1rem;
+    }
+
+    .drug-section-header-left {
+        display: flex;
+        gap: 0.6rem;
+        align-items: center;
+    }
+
+    .drug-section-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .drug-section-icon.primary {
+        background: linear-gradient(135deg, #DBEAFE, #EFF6FF);
+    }
+
+    .drug-section-icon.secondary {
+        background: #EFF6FF;
+    }
+
+    .capsule-icon {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+    }
+
+    .people-icon {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+    }
+
+    .drug-section-icon.tertiary {
+        background: #E0F2FE;
+    }
+
+    .utensils-icon {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+    }
+
+    .drug-section-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .drug-section-subtitle {
+        font-size: 0.8rem;
+        color: #6B7280;
+    }
+
+    .drug-standard-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 0.75rem 0 1rem;
+        border-top: 1px solid #E5E7EB;
+        border-bottom: 1px solid #E5E7EB;
+        margin-bottom: 0.75rem;
+    }
+
+    .drug-standard-column-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .indications-column {
+        width: 100%;
+    }
+
+    .drug-standard-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: black;
+        margin-bottom: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .label-icon {
+        width: 16px;
+        height: 16px;
+        object-fit: contain;
+    }
+
+    .drug-standard-list {
+        padding-left: 2rem;
+        margin: 0;
+        font-size: 0.85rem;
+        color: #374151;
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+    }
+
+    .drug-standard-value {
+        margin-left: 24px;
+        font-size: 14px;
+        font-weight: 400;
+        color: #4D4D4D;
+    }
+
+    .drug-dose-table {
+        width: 100%;
+        border-radius: 12px;
+        border: 1px solid #E5E7EB;
+        overflow: hidden;
+        font-size: 0.85rem;
+    }
+
+    .drug-dose-table-header {
+        display: grid;
+        grid-template-columns: 2.3fr 1fr 1fr 1fr;
+        background: linear-gradient(to right, rgba(239, 246, 255, 1), rgba(73, 148, 255, 0.1));
+        padding: 0.55rem 0.9rem;
+        color: #6B7280;
+        font-weight: 500;
+    }
+
+    .drug-dose-row {
+        display: grid;
+        grid-template-columns: 2.3fr 1fr 1fr 1fr auto;
+        align-items: center;
+        padding: 0.65rem 0.9rem;
+        border-top: 1px solid #E5E7EB;
+        background: transparent;
+    }
+
+    .drug-dose-row.muted {
+        background: transparent;
+    }
+
+    .drug-dose-row-title {
+        font-weight: 500;
+        color: #111827;
+        margin-bottom: 0.1rem;
+    }
+
+    .drug-dose-row-subtitle {
+        font-size: 0.78rem;
+        color: #6B7280;
+    }
+
+    .drug-dose-cell {
+        color: #111827;
+        font-weight: 500;
+    }
+
+    .drug-dose-expand {
+        justify-self: end;
+        background: transparent;
+        border: none;
+        padding: 0.15rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .drug-adjustment-block {
+        margin-top: 0.75rem;
+        background: #F9FAFB;
+        border-radius: 12px;
+        padding: 1rem;
+    }
+
+    .drug-adjustment-title-container {
+        margin-bottom: 0.75rem;
+    }
+
+    .drug-adjustment-title {
+        font-size: 16px;
+        line-height: 24px;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .drug-adjustment-title.with-icon {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .drop-icon {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+    }
+
+    .electricity-icon {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+    }
+
+    .drug-adjustment-card-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .drug-adjustment-card {
+        margin-bottom: 0;
+        padding: 0.6rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.82rem;
+        line-height: 1.4;
+        background: #FFFFFF;
+        border-left: 4px solid;
+    }
+
+    .drug-adjustment-card.red-border {
+        border-left-color: #FB2C36;
+        color: #B91C1C;
+    }
+
+    .drug-adjustment-card.green-border {
+        border-left-color: #00C950;
+        color: #047857;
+    }
+
+    .drug-adjustment-card.subtle {
+        background: #FFFFFF;
+        border-left-color: #00C950;
+        color: #047857;
+    }
+
+    .hepatic-content {
+        margin-top: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .hepatic-caution-section {
+        margin-bottom: 0.75rem;
+    }
+
+    .hepatic-caution-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 0.5rem;
+    }
+
+    .warning-icon-small {
+        width: 16px;
+        height: 16px;
+        object-fit: contain;
+    }
+
+    .hepatic-monitor-text {
+        font-size: 0.85rem;
+        color: #374151;
+        margin-left: 1.5rem;
+    }
+
+    .drug-adjustment-contraindicated-container {
+        background: #FEF2F2;
+        border: 1px solid #FFC9C9;
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+    }
+
+    .hemodialysis-list {
+        padding-left: 1.1rem;
+        margin: 0.5rem 0 0;
+        font-size: 0.82rem;
+        color: #374151;
+        list-style: none;
+    }
+
+    .hemodialysis-list li {
+        margin-bottom: 0.25rem;
+    }
+
+    .drug-adjustment-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.1rem 0.5rem;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 24px;
+        margin-bottom: 0.3rem;
+    }
+
+    .drug-adjustment-badge.red {
+        color: black;
+    }
+
+    .drug-adjustment-badge.green {
+        color: black;
+    }
+
+    .drug-adjustment-status {
+        font-size: 14px;
+        line-height: 20px;
+        font-weight: 600;
+        margin-bottom: 0.15rem;
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .status-icon {
+        width: 16px;
+        height: 16px;
+        object-fit: contain;
+    }
+
+    .drug-adjustment-status.red {
+        color: #B91C1C;
+    }
+
+    .drug-adjustment-status.green {
+        color: #047857;
+    }
+
+    .drug-adjustment-card ul {
+        padding-left: 1.1rem;
+        margin: 0.1rem 0 0;
+    }
+
+    .drug-adjustment-card li {
+        margin-bottom: 0.05rem;
+    }
+
+    .drug-admin-list {
+        padding-left: 1.1rem;
+        margin: 0.25rem 0 0;
+        font-size: 0.85rem;
+        color: #374151;
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+    }
+
+    .drug-extra-info {
+        margin-top: 0.5rem;
+        font-size: 0.8rem;
+        color: #6B7280;
+    }
+
+    .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+    }
+
+    .dot.blue {
+        background: #3B82F6;
+    }
+
+    .dot.orange {
+        background: #F97316;
+    }
+
+    .dot.red {
+        background: #EF4444;
+    }
+
+    .drug-adjustment-title.blue {
+        color: #1D4ED8;
+    }
+
+    .drug-adjustment-title.orange {
+        color: #C2410C;
+    }
+
+    .drug-adjustment-title.red {
+        color: #B91C1C;
+    }
+
+    .calculator-modal-footer {
+        display: none;
+    }
+
+    .calculator-modal-primary {
+        display: none;
+    }
+
+    @@media (max-width: 768px) {
+        .calculator-modal {
+            width: 100%;
+            margin: 0 1rem;
+            padding: 1.25rem 1.25rem 1rem;
+        }
+
+        .drug-standard-grid {
+            grid-template-columns: 1fr;
+            gap: 0.8rem;
+        }
+
+        .drug-dose-table-header {
+            display: none;
+        }
+
+        .drug-dose-row,
+        .drug-dose-row.muted {
+            grid-template-columns: 1.8fr 1fr;
+            grid-template-rows: auto auto auto;
+            row-gap: 0.35rem;
+        }
+
+        .drug-dose-cell:nth-child(2),
+        .drug-dose-cell:nth-child(3),
+        .drug-dose-cell:nth-child(4) {
+            font-size: 0.78rem;
+        }
+    }
+</style>
+

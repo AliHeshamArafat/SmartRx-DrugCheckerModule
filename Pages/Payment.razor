@@ -1,0 +1,772 @@
+@page "/payment"
+@page "/payment/{Plan}"
+@layout AuthLayout
+@using SmartRx_DrugChecker.Services
+@implements IDisposable
+@inject NavigationManager Navigation
+@inject MarketStateService MarketState
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<div class="payment-page">
+    <div class="payment-card">
+        <div class="payment-left">
+            <div class="payment-logo">
+                <img src="images/logo.png" alt="SmartRX" />
+            </div>
+
+            <div class="payment-content">
+                <h1 class="payment-title">Upgrade to @GetPlanDisplayName()</h1>
+                <p class="payment-subtitle">Do more with unlimited blocks, files, automations & integrations.</p>
+
+                <form class="payment-form" @onsubmit="HandleSubmit" @onsubmit:preventDefault="true">
+                    <div class="form-group">
+                        <label class="form-label" for="billed-to">Billed To</label>
+                        <input id="billed-to" class="form-input" type="text" @bind="billedTo" placeholder="Enter name" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Payment Method</label>
+                        <div class="payment-method-selector">
+                            <button type="button" class="payment-method-btn @(paymentMethod == "credit" ? "active" : "")" @onclick="@(() => SelectPaymentMethod("credit"))">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="2" y="6" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M2 10H22" stroke="currentColor" stroke-width="2"/>
+                                    <circle cx="7" cy="15" r="1" fill="currentColor"/>
+                                    <circle cx="10" cy="15" r="1" fill="currentColor"/>
+                                </svg>
+                                <span>Credit Card</span>
+                            </button>
+                            <button type="button" class="payment-method-btn @(paymentMethod == "bank" ? "active" : "")" @onclick="@(() => SelectPaymentMethod("bank"))">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M3 9H21V7C21 6.44772 20.5523 6 20 6H4C3.44772 6 3 6.44772 3 7V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M3 9V17C3 17.5523 3.44772 18 4 18H20C20.5523 18 21 17.5523 21 17V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M7 12H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M7 15H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span>Bank Transfer</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    @if (paymentMethod == "credit")
+                    {
+                        <div class="form-group">
+                            <label class="form-label" for="card-number">Card Number</label>
+                            <div class="card-input-wrapper">
+                                <input id="card-number" class="form-input card-number-input" type="text" @bind="cardNumber" placeholder="Enter card number" maxlength="19" @oninput="FormatCardNumber" />
+                                <img src="images/Mastercard.png" alt="Mastercard" class="card-brand-icon" />
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="expiry">Expiry</label>
+                                <input id="expiry" class="form-input" type="text" @bind="expiry" placeholder="MM/YY" maxlength="5" @oninput="FormatExpiry" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="cvv">CVV</label>
+                                <input id="cvv" class="form-input" type="text" @bind="cvv" placeholder="CVV" maxlength="4" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="country">Country</label>
+                            <select id="country" class="form-input form-select" @bind="country">
+                                <option value="United States">United States</option>
+                                <option value="Egypt">Egypt</option>
+                                <option value="Saudi Arabia">Saudi Arabia</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="zip-code">Zip Code</label>
+                            <input id="zip-code" class="form-input" type="text" @bind="zipCode" placeholder="Enter zip code" />
+                        </div>
+                    }
+
+                    <div class="payment-actions">
+                        <button type="button" class="cancel-button" @onclick="HandleCancel">Cancel</button>
+                        <button type="submit" class="subscribe-button">Subscribe</button>
+                    </div>
+
+                    <p class="payment-disclaimer">
+                        By providing your card information, you allow us to charge your card for future payment in accordance with their terms.
+                    </p>
+                </form>
+            </div>
+        </div>
+
+        <div class="payment-right">
+            <div class="plan-summary">
+                <h2 class="plan-summary-title">@GetPlanDisplayName() Plan</h2>
+
+                <div class="billing-options">
+                    <label class="billing-option @(isMonthly ? "active" : "")" @onclick="@(() => { isMonthly = true; StateHasChanged(); })">
+                        <input type="radio" name="billing" checked="@isMonthly" />
+                        <div class="billing-option-content">
+                            <span class="billing-label">Pay Monthly</span>
+                            <span class="billing-price"><span class="currency-symbol">@GetCurrencySymbol()</span>@GetMonthlyPrice() / Month / Member</span>
+                        </div>
+                    </label>
+                    <label class="billing-option @(!isMonthly ? "active" : "")" @onclick="@(() => { isMonthly = false; StateHasChanged(); })">
+                        <input type="radio" name="billing" checked="@(!isMonthly)" />
+                        <div class="billing-option-content">
+                            <div class="billing-header">
+                                <span class="billing-label">Pay Annual</span>
+                                <span class="save-badge">Save 15%</span>
+                            </div>
+                            <span class="billing-price"><span class="currency-symbol">@GetCurrencySymbol()</span>@GetAnnualPrice() / Month / Member</span>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="promo-section">
+                    <label class="form-label" for="promo-code">Promo code</label>
+                    <div class="promo-input-wrapper">
+                        <input id="promo-code" class="form-input promo-input" type="text" @bind="promoCode" placeholder="Enter Promo Code" />
+                        <button type="button" class="apply-button" @onclick="ApplyPromoCode">Apply</button>
+                    </div>
+                </div>
+
+                <div class="total-section">
+                    <div class="total-row">
+                        <span class="total-label">Total</span>
+                        <span class="total-amount"><span class="currency-symbol">@GetCurrencySymbol()</span>@GetTotalPrice() / Month</span>
+                    </div>
+                    <div class="security-message">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Guaranteed to be safe & secure, ensuring that all transactions are protected with the highest level of security.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="payment-robot">
+                <img src="images/robot 2.avif" alt="SmartRX Robot Doctor" class="payment-robot-image" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .payment-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        padding: 2rem;
+    }
+
+    .payment-card {
+        width: 100%;
+        max-width: 1200px;
+        background: #ffffff;
+        border-radius: 24px;
+        display: flex;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(15, 23, 42, 0.15);
+    }
+
+    .payment-left {
+        flex: 1;
+        padding: 3rem 3.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .payment-logo img {
+        height: 40px;
+        width: auto;
+    }
+
+    .payment-content {
+        max-width: 500px;
+    }
+
+    .payment-title {
+        font-size: 32px;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+        color: #111827;
+    }
+
+    .payment-subtitle {
+        font-size: 14px;
+        color: #6b7280;
+        margin: 0 0 2rem 0;
+    }
+
+    .payment-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #4b5563;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.85rem 0.9rem;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        font-size: 14px;
+        font-family: inherit;
+        color: #111827;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        background: #f9fafb;
+    }
+
+    .form-input:focus {
+        border-color: #4994FF;
+        box-shadow: 0 0 0 1px rgba(73, 148, 255, 0.3);
+        background: #ffffff;
+    }
+
+    .form-select {
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%234b5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.9rem center;
+        padding-right: 2.5rem;
+    }
+
+    .payment-method-selector {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .payment-method-btn {
+        flex: 1;
+        padding: 1rem;
+        border-radius: 12px;
+        border: 2px solid #e5e7eb;
+        background: #ffffff;
+        color: #4b5563;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .payment-method-btn svg {
+        flex-shrink: 0;
+    }
+
+    .payment-method-btn span {
+        flex-shrink: 0;
+    }
+
+    .payment-method-btn:hover {
+        border-color: #d1d5db;
+    }
+
+    .payment-method-btn.active {
+        border-color: #4994FF;
+        background: rgba(73, 148, 255, 0.05);
+        color: #4994FF;
+    }
+
+    .card-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .card-number-input {
+        padding-right: 3rem;
+    }
+
+    .card-brand-icon {
+        position: absolute;
+        right: 0.9rem;
+        width: 32px;
+        height: 20px;
+        object-fit: contain;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .payment-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .cancel-button {
+        flex: 1;
+        padding: 0.9rem 1rem;
+        border-radius: 8px;
+        border: none;
+        background: #F2F5F7;
+        color: #111827;
+        font-weight: 500;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .cancel-button:hover {
+        background: #e5e9ec;
+    }
+
+    .subscribe-button {
+        flex: 2;
+        padding: 0.9rem 1rem;
+        border-radius: 8px;
+        border: none;
+        background: #4994FF;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .subscribe-button:hover {
+        background: #3b7ae8;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(73, 148, 255, 0.3);
+    }
+
+    .payment-disclaimer {
+        font-size: 11px;
+        color: #6b7280;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .payment-right {
+        flex: 0.9;
+        background: radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.1), transparent 55%), 
+                    radial-gradient(circle at 70% 70%, rgba(249, 115, 22, 0.15), transparent 55%);
+        padding: 3rem 2.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .plan-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .plan-summary-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0;
+        color: #111827;
+    }
+
+    .billing-options {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .billing-option {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem;
+        border-radius: 12px;
+        border: 2px solid #e5e7eb;
+        background: #ffffff;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .billing-option:hover {
+        border-color: #d1d5db;
+    }
+
+    .billing-option.active {
+        border-color: #4994FF;
+        background: rgba(73, 148, 255, 0.05);
+    }
+
+    .billing-option input[type="radio"] {
+        margin-top: 0.25rem;
+        cursor: pointer;
+    }
+
+    .billing-option-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .billing-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    .billing-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .billing-price {
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .save-badge {
+        background-color: rgba(255, 176, 80, 0.1);
+        color: #FFB050;
+        padding: 0.25rem 0.75rem;
+        border-radius: 5px;
+        font-size: 0.75rem;
+        font-weight: 400;
+        white-space: nowrap;
+    }
+
+    .promo-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .promo-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .promo-input {
+        width: 100%;
+        padding-right: 4rem;
+    }
+
+    .apply-button {
+        position: absolute;
+        right: 1rem;
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: #111827;
+        font-weight: 500;
+        font-size: 16px;
+        cursor: pointer;
+        transition: color 0.2s ease;
+        white-space: nowrap;
+        z-index: 1;
+    }
+
+    .apply-button:hover {
+        color: #4994FF;
+    }
+
+    .total-section {
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .total-label {
+        font-size: 20px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .total-amount {
+        font-size: 20px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .security-message {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        font-size: 11px;
+        color: #6b7280;
+        line-height: 1.5;
+    }
+
+    .security-message svg {
+        flex-shrink: 0;
+        margin-top: 2px;
+        color: #4994FF;
+    }
+
+    .currency-symbol {
+        display: inline-flex;
+        align-items: baseline;
+    }
+
+    .currency-symbol img {
+        width: 1em;
+        height: 1em;
+        object-fit: contain;
+        vertical-align: baseline;
+    }
+
+    .payment-robot {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .payment-robot-image {
+        max-width: 100%;
+        height: auto;
+        object-fit: contain;
+    }
+
+    @@media (max-width: 992px) {
+        .payment-card {
+            flex-direction: column;
+        }
+
+        .payment-left {
+            padding: 2.5rem 2rem;
+        }
+
+        .payment-right {
+            padding: 2rem 1.5rem;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .payment-page {
+            padding: 1.5rem 1rem;
+        }
+
+        .payment-card {
+            border-radius: 16px;
+        }
+
+        .payment-left {
+            padding: 2rem 1.5rem;
+        }
+
+        .payment-title {
+            font-size: 24px;
+        }
+
+        .payment-method-selector {
+            flex-direction: column;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .payment-right {
+            padding: 1.5rem;
+        }
+    }
+</style>
+
+@code {
+    [Parameter]
+    public string? Plan { get; set; }
+
+    private string selectedPlan = "individual";
+    private string billedTo = string.Empty;
+    private string paymentMethod = string.Empty;
+    private string cardNumber = string.Empty;
+    private string expiry = string.Empty;
+    private string cvv = string.Empty;
+    private string country = "United States";
+    private string zipCode = string.Empty;
+    private string promoCode = "";
+    private bool isMonthly = false;
+
+    protected override void OnInitialized()
+    {
+        if (!string.IsNullOrEmpty(Plan))
+        {
+            selectedPlan = Plan.ToLower();
+        }
+        if (MarketState != null)
+        {
+            MarketState.OnMarketChanged += HandleMarketChanged;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (MarketState != null)
+        {
+            MarketState.OnMarketChanged -= HandleMarketChanged;
+        }
+    }
+
+    private void HandleMarketChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private string GetPlanDisplayName()
+    {
+        return selectedPlan switch
+        {
+            "individual" => "Individual",
+            "team" => "Team",
+            "clinic" => "Clinic Pro",
+            "enterprise" => "Enterprise",
+            _ => "Individual"
+        };
+    }
+
+    private void SelectPaymentMethod(string method)
+    {
+        paymentMethod = method;
+        StateHasChanged();
+    }
+
+    private void FormatCardNumber(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString() ?? "";
+        value = new string(value.Where(char.IsDigit).ToArray());
+        if (value.Length > 16) value = value.Substring(0, 16);
+        cardNumber = string.Join(" ", Enumerable.Range(0, value.Length / 4)
+            .Select(i => value.Substring(i * 4, Math.Min(4, value.Length - i * 4))));
+    }
+
+    private void FormatExpiry(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString() ?? "";
+        value = new string(value.Where(char.IsDigit).ToArray());
+        if (value.Length > 4) value = value.Substring(0, 4);
+        if (value.Length > 2)
+        {
+            expiry = value.Substring(0, 2) + "/" + value.Substring(2);
+        }
+        else
+        {
+            expiry = value;
+        }
+    }
+
+    private void ApplyPromoCode()
+    {
+        // Implement promo code logic
+        Console.WriteLine($"Applying promo code: {promoCode}");
+    }
+
+    private RenderFragment GetCurrencySymbol()
+    {
+        var market = MarketState?.SelectedMarket ?? "egypt";
+        
+        if (market == "egypt")
+        {
+            return builder =>
+            {
+                builder.AddContent(0, "£");
+            };
+        }
+        else // saudi
+        {
+            return builder =>
+            {
+                builder.OpenElement(0, "img");
+                builder.AddAttribute(1, "src", "/images/Riyal.webp");
+                builder.AddAttribute(2, "alt", "SAR");
+                builder.CloseElement();
+            };
+        }
+    }
+
+    private string GetMonthlyPrice()
+    {
+        var market = MarketState?.SelectedMarket ?? "egypt";
+        var prices = GetPricingForMarket(market);
+        if (prices.ContainsKey(selectedPlan))
+        {
+            return prices[selectedPlan].ToString();
+        }
+        return "0";
+    }
+
+    private string GetAnnualPrice()
+    {
+        var market = MarketState?.SelectedMarket ?? "egypt";
+        var prices = GetPricingForMarket(market);
+        if (prices.ContainsKey(selectedPlan))
+        {
+            var monthlyPrice = prices[selectedPlan];
+            var annualPrice = (int)(monthlyPrice * 10 / 12.0);
+            return annualPrice.ToString();
+        }
+        return "0";
+    }
+
+    private string GetTotalPrice()
+    {
+        return isMonthly ? GetMonthlyPrice() : GetAnnualPrice();
+    }
+
+    private Dictionary<string, int> GetPricingForMarket(string market)
+    {
+        if (market == "egypt")
+        {
+            return new Dictionary<string, int>
+            {
+                { "individual", 29 },
+                { "team", 99 },
+                { "clinic", 299 }
+            };
+        }
+        else
+        {
+            return new Dictionary<string, int>
+            {
+                { "individual", 120 },
+                { "team", 400 },
+                { "clinic", 1200 }
+            };
+        }
+    }
+
+    private void HandleSubmit()
+    {
+        Console.WriteLine($"Payment submitted for {selectedPlan} plan");
+        // Implement payment processing logic
+    }
+
+    private void HandleCancel()
+    {
+        Navigation.NavigateTo("/pricing");
+    }
+}

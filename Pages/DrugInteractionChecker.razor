@@ -1,0 +1,2236 @@
+@page "/"
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@inject HttpClient? Http
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<section id="drug-checker-hero" class="hero-section">
+    <img src="images/Glow.avif" alt="Glow" class="hero-glow-image" />
+    <div class="hero-container">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                Drug Interaction & Safety Checker
+            </h1>
+            <p class="hero-description">
+                Check drug interactions, contraindications, and patient-specific risks in seconds.
+            </p>
+            
+            <div class="hero-buttons">
+                <a href="#drug-interaction-form" class="btn-primary">
+                    <img src="images/Stars.png" alt="Stars" class="btn-icon" />
+                    Start Checking
+                </a>
+                <a href="#" class="btn-primary">Subscribe Now</a>
+            </div>
+        </div>
+        
+        <div class="hero-image-container">
+            <div class="robot-wrapper">
+                <img src="images/robot 2.avif" alt="SmartRX Robot Doctor" class="hero-robot-image" />
+            </div>
+            
+            <div class="hero-info-cards">
+                <div class="info-card info-card-doctors">
+                    <div class="info-card-content">
+                        <div class="info-card-icons">
+                            <img src="images/Doctor1.png" alt="Doctor 1" class="doctor-image" />
+                            <img src="images/Doctor2.png" alt="Doctor 2" class="doctor-image" />
+                            <img src="images/Doctor3.png" alt="Doctor 3" class="doctor-image" />
+                        </div>
+                        <div class="info-card-text-wrapper">
+                            <span class="info-card-number">+300</span>
+                            <span class="info-card-text">Expert Doctors used</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-card info-card-treatment">
+                    <div class="info-card-content">
+                        <img src="images/SuccessfulTreatment.png" alt="Successful Check" class="treatment-image" />
+                        <div class="info-card-text-wrapper">
+                            <span class="info-card-number">+1000</span>
+                            <span class="info-card-text">Successful Check</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="features-section">
+    <div class="features-container">
+        <div class="feature-card feature-card-blue">
+            <div class="feature-icon">
+                <img src="images/Capsule.png" alt="Capsule" />
+            </div>
+            <h3 class="feature-title">Select Multiple Drugs</h3>
+            <p class="feature-description">Choose more than one medication to check interactions.</p>
+        </div>
+        <div class="feature-card feature-card-orange">
+            <div class="feature-icon">
+                <img src="images/Baby.png" alt="Baby" />
+            </div>
+            <h3 class="feature-title">Pregnancy & Lactation Safety</h3>
+            <p class="feature-description">Identify risks for pregnant or breastfeeding patients.</p>
+        </div>
+        <div class="feature-card feature-card-red">
+            <div class="feature-icon">
+                <img src="images/Warning.png" alt="Warning" />
+            </div>
+            <h3 class="feature-title">Contraindications</h3>
+            <p class="feature-description">Review warnings based on patient conditions.</p>
+        </div>
+        <div class="feature-card feature-card-purple">
+            <div class="feature-icon">
+                <img src="images/Alarm.png" alt="Alarm" />
+            </div>
+            <h3 class="feature-title">Hypersensitivity</h3>
+            <p class="feature-description">Check for allergic and hypersensitivity reactions.</p>
+        </div>
+    </div>
+</section>
+
+<div id="drug-interaction-form" class="drug-interaction-form-page">
+    <div class="form-container">
+        <!-- Left Panel: Form Sections -->
+        <div class="form-sections">
+            <!-- Patient Information Section -->
+            <div class="form-section">
+                <div class="section-header">
+                    <span class="section-icon">
+                        <img src="images/User.png" alt="User" />
+                    </span>
+                    <h2 class="section-title">Patient Information</h2>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select @bind="patientInfo.Gender" @bind:event="onchange" id="gender" class="form-input form-select">
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="birthDate">Birth Date</label>
+                        <input type="date" @bind="BirthDate" @bind:event="onchange" id="birthDate" class="form-input form-date" placeholder="mm/dd/yyyy" />
+                    </div>
+                    <div class="form-group">
+                        <label for="age">Age (auto-calculated)</label>
+                        <input type="number" value="@patientInfo.Age" id="age" class="form-input" placeholder="Age" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label for="weight">Weight (kg)</label>
+                        <input type="number" @bind="patientInfo.Weight" @bind:event="onchange" id="weight" class="form-input" placeholder="Enter Weight" step="0.1" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Select Drugs Section -->
+            <div class="form-section">
+                <div class="section-header">
+                    <span class="section-icon">
+                        <img src="images/Capsule.png" alt="Capsule" />
+                    </span>
+                    <h2 class="section-title">Select Drugs</h2>
+                </div>
+                <div class="search-container search-container-with-icon">
+                    <span class="search-icon-wrapper">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                    <input type="text" @bind="DrugSearchQuery" @bind:event="oninput" 
+                           class="search-input search-input-with-icon" placeholder="Search by brand or generic name..." />
+                </div>
+                @if (isSearchingDrugs)
+                {
+                    <div class="drug-search-results">
+                        <div class="drug-result-item" style="text-align: center; color: #666;">
+                            Searching...
+                        </div>
+                    </div>
+                }
+                else if (drugSearchResults.Any() && !string.IsNullOrWhiteSpace(drugSearchQuery))
+                {
+                    <div class="drug-search-results">
+                        @foreach (var drug in drugSearchResults)
+                        {
+                            <div class="drug-result-item" @onclick="() => AddDrugFromSearch(drug)">
+                                <span class="drug-result-name">@drug.Name</span>
+                                @if (!string.IsNullOrEmpty(drug.GenericName))
+                                {
+                                    <span class="drug-result-generic">(@drug.GenericName)</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                @if (selectedDrugs.Any())
+                {
+                    <div class="selected-drugs">
+                        @foreach (var drug in selectedDrugs)
+                        {
+                            <div class="drug-item">
+                                <div class="drug-info">
+                                    <span class="drug-name">@drug.Name</span>
+                                    @if (!string.IsNullOrEmpty(drug.GenericName))
+                                    {
+                                        <span class="drug-generic">(@drug.GenericName)</span>
+                                    }
+                                </div>
+                                <div class="drug-actions">
+                                    <button type="button" class="list-button" @onclick="() => OpenCalculatorAsync(drug)">
+                                        <img src="images/Calculator.png" alt="Calculator" class="calculator-icon" />
+                                    </button>
+                                    <button type="button" @onclick="() => RemoveDrug(drug)" class="remove-button">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Safety Check Options Section -->
+            <div class="form-section">
+                <div class="section-header">
+                    <span class="section-icon section-icon-safety">
+                        <img src="images/Baby.png" alt="Baby" />
+                    </span>
+                    <h2 class="section-title">Safety Check Options</h2>
+                </div>
+                <div class="checkbox-group">
+                    <label class="checkbox-label custom-checkbox">
+                        <input type="checkbox" @bind="safetyOptions.CheckPregnancy" @bind:event="onchange" class="custom-checkbox-input" />
+                        <span class="custom-checkbox-mark @(safetyOptions.CheckPregnancy ? "checked" : "")"></span>
+                        <span class="checkbox-text">Check Pregnancy Risks</span>
+                    </label>
+                    <label class="checkbox-label custom-checkbox">
+                        <input type="checkbox" @bind="safetyOptions.CheckLactation" @bind:event="onchange" class="custom-checkbox-input" />
+                        <span class="custom-checkbox-mark @(safetyOptions.CheckLactation ? "checked" : "")"></span>
+                        <span class="checkbox-text">Check Lactation Risks</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Diagnoses / Conditions Section -->
+            <div class="form-section">
+                <div class="section-header">
+                    <span class="section-icon section-icon-diagnoses">
+                        <img src="images/Examine.png" alt="Examine" />
+                    </span>
+                    <h2 class="section-title">Diagnoses / Conditions <span class="optional-text">(Optional)</span></h2>
+                </div>
+                <div class="search-container search-container-inline">
+                    <input type="text" @bind="conditionSearchQuery" @bind:event="oninput" @onkeypress="@(e => { if (e.Key == "Enter") AddCondition(); })" 
+                           class="search-input" placeholder="Search and add conditions..." />
+                    <button type="button" @onclick="AddCondition" class="add-button-inline">+</button>
+                </div>
+                @if (conditions.Any())
+                {
+                    <div class="tags-container">
+                        @foreach (var condition in conditions)
+                        {
+                            <span class="tag tag-condition">
+                                @condition
+                                <button type="button" @onclick="() => RemoveCondition(condition)" class="tag-remove">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                            </span>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Known Drug Allergies Section -->
+            <div class="form-section">
+                <div class="section-header">
+                    <span class="section-icon section-icon-allergies">
+                        <img src="images/Warning.png" alt="Warning" />
+                    </span>
+                    <h2 class="section-title">Known Drug Allergies <span class="optional-text">(Optional)</span></h2>
+                </div>
+                <div class="search-container search-container-inline">
+                    <input type="text" @bind="allergySearchQuery" @bind:event="oninput" @onkeypress="@(e => { if (e.Key == "Enter") AddAllergy(); })" 
+                           class="search-input" placeholder="Search and add allergies..." />
+                    <button type="button" @onclick="AddAllergy" class="add-button-inline">+</button>
+                </div>
+                @if (allergies.Any())
+                {
+                    <div class="tags-container">
+                        @foreach (var allergy in allergies)
+                        {
+                            <span class="tag tag-allergy">
+                                @allergy
+                                <button type="button" @onclick="() => RemoveAllergy(allergy)" class="tag-remove">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                            </span>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="form-actions">
+                <button type="button" @onclick="CheckDrugSafety" class="btn-check-safety" disabled="@isCheckingSafety">
+                    @if (isCheckingSafety)
+                    {
+                        <span>Checking...</span>
+                    }
+                    else
+                    {
+                        <img src="images/Stars.png" alt="Stars" class="btn-check-icon" />
+                        <span>Check Drug Safety</span>
+                    }
+                </button>
+                <button type="button" @onclick="ClearAll" class="btn-clear" disabled="@isCheckingSafety">Clear All</button>
+            </div>
+        </div>
+
+        <!-- Right Panel: Summary -->
+        <div class="summary-panel">
+            <h2 class="summary-title">Summary</h2>
+            <div class="summary-items">
+                <div class="summary-item">
+                    <span class="summary-icon">
+                        <img src="images/Capsule.png" alt="Capsule" />
+                    </span>
+                    <span class="summary-label">Drugs selected</span>
+                    <span class="summary-count">@selectedDrugs.Count</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-icon">
+                        <img src="images/Examine.png" alt="Examine" />
+                    </span>
+                    <span class="summary-label">Conditions</span>
+                    <span class="summary-count">@conditions.Count</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-icon">
+                        <img src="images/Warning.png" alt="Warning" />
+                    </span>
+                    <span class="summary-label">Allergies</span>
+                    <span class="summary-count">@allergies.Count</span>
+                </div>
+                <div class="summary-separator"></div>
+                <div class="summary-item summary-item-vertical">
+                    <span class="summary-icon">
+                        <img src="images/Baby.png" alt="Baby" />
+                    </span>
+                    <div class="summary-content">
+                        <span class="summary-label">Pregnancy check</span>
+                        <span class="summary-status @(safetyOptions.CheckPregnancy ? "on" : "off")">@(safetyOptions.CheckPregnancy ? "On" : "Off")</span>
+                    </div>
+                </div>
+                <div class="summary-item summary-item-vertical">
+                    <span class="summary-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 16V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 8H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                    <div class="summary-content">
+                        <span class="summary-label">Lactation check</span>
+                        <span class="summary-status @(safetyOptions.CheckLactation ? "on" : "off")">@(safetyOptions.CheckLactation ? "On" : "Off")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hero-section {
+        min-height: 100vh;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 120px 3rem 3rem;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        overflow: hidden;
+        outline: none;
+        border: none;
+    }
+
+    .hero-section * {
+        outline: none;
+    }
+
+    .hero-section *:focus {
+        outline: none;
+    }
+
+    .hero-glow-image {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        height: 100%;
+        width: auto;
+        max-width: none;
+        min-width: 800px;
+        object-fit: contain;
+        object-position: right center;
+        z-index: 0;
+        opacity: 0.8;
+        pointer-events: none;
+    }
+
+    .hero-container {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        max-width: 1440px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 0 clamp(1.5rem, 10.14vw, 146px);
+        gap: 0;
+        position: relative;
+        z-index: 2;
+        box-sizing: border-box;
+        outline: none;
+        border: none;
+    }
+
+    @@media (min-width: 1440px) {
+        .hero-container {
+            padding: 0 ;
+        }
+    }
+
+    .hero-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+        gap: 2rem;
+        max-width: 600px;
+        outline: none;
+        border: none;
+    }
+
+    .hero-title {
+        font-size: clamp(32px, 3.89vw, 56px);
+        font-weight: 700;
+        line-height: 130%;
+        margin: 0;
+        padding: 0;
+        color: #4994FF;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        position: relative;
+        z-index: 2;
+        outline: none;
+        border: none;
+    }
+
+    @@media (min-width: 1440px) {
+        .hero-title {
+            font-size: 48px;
+            line-height: 70px;
+            font-weight: 700;
+        }
+    }
+
+    .hero-description {
+        font-size: clamp(16px, 1.39vw, 20px);
+        color: rgba(38, 50, 56, 0.8);
+        font-weight: 400;
+        line-height: 1.6;
+        margin: 0;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    @@media (min-width: 1440px) {
+        .hero-description {
+            font-size: 18px;
+            line-height: 40px;
+            font-weight: 400;
+            color: #000000;
+            max-width: 411px;
+        }
+    }
+
+    .hero-buttons {
+        display: flex;
+        gap: 3rem;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    @@media (min-width: 1440px) {
+        .hero-buttons {
+            flex-wrap: nowrap;
+            gap: 5px;
+        }
+    }
+
+    .btn-primary {
+        padding: 1rem 4rem;
+        background: #4994FF;
+        color: white;
+        text-decoration: none;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+        font-size: 0.95rem;
+        border: none;
+        cursor: pointer;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    @@media (min-width: 1440px) {
+        .btn-primary {
+            width: 189px;
+            height: 36px;
+            border-radius: 5px;
+            background: #4994FF;
+            padding: 0;
+            justify-content: center;
+        }
+    }
+
+    .btn-primary svg,
+    .btn-primary .btn-icon {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+    }
+
+    .hero-image-container {
+        flex-shrink: 0;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: clamp(400px, 55.9vw, 805px);
+        height: clamp(362px, 50.6vw, 729px);
+        aspect-ratio: 805 / 729;
+        z-index: 1;
+        margin-left: clamp(-120px, -8.33vw, -120px);
+    }
+
+    .robot-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        z-index: 2;
+    }
+
+    .hero-robot-image {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center;
+        z-index: 2;
+    }
+
+    .hero-info-cards {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 1rem;
+        z-index: 3;
+    }
+
+    .info-card {
+        background: transparent;
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        border-radius: 40px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        overflow: hidden;
+        display: flex;
+        gap: 20px;
+    }
+
+    .info-card-doctors {
+        width: clamp(200px, 18.9vw, 272px);
+        height: clamp(74px, 6.94vw, 100px);
+        align-self: flex-end;
+    }
+
+    .info-card-doctors .info-card-content {
+        justify-content: flex-start;
+        padding: 0;
+    }
+
+    .info-card-icons {
+        padding-left: 0;
+    }
+
+    .info-card-doctors .info-card-text-wrapper {
+        padding-left: 0;
+    }
+
+    .info-card-treatment {
+        width: clamp(300px, 29.03vw, 418px);
+        height: clamp(74px, 6.94vw, 100px);
+        padding: 0;
+    }
+
+    .info-card-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(12px, 1.39vw, 20px);
+        height: 100%;
+        padding: 0;
+        width: 100%;
+    }
+
+    .info-card-treatment .info-card-content {
+        align-items: stretch;
+        justify-content: flex-start;
+        padding: 0;
+    }
+
+    .info-card-icons {
+        display: flex;
+        align-items: center;
+        position: relative;
+    }
+
+    .doctor-image {
+        width: clamp(35px, 3.47vw, 50px);
+        height: clamp(35px, 3.47vw, 50px);
+        object-fit: cover;
+        border-radius: 50%;
+        border: 2px solid white;
+        position: relative;
+    }
+
+    .doctor-image:nth-child(1) {
+        z-index: 3;
+    }
+
+    .doctor-image:nth-child(2) {
+        z-index: 2;
+        margin-left: -25px;
+    }
+
+    .doctor-image:nth-child(3) {
+        z-index: 1;
+        margin-left: -25px;
+    }
+
+    .treatment-image {
+        width: clamp(120px, 12.5vw, 180px);
+        height: 100%;
+        min-height: 60px;
+        object-fit: cover;
+        border-radius: 0;
+        border-top-left-radius: 30px;
+        border-bottom-left-radius: 30px;
+        flex-shrink: 0;
+    }
+
+    .info-card-text-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        justify-content: center;
+        padding: 0;
+        flex: 1;
+    }
+
+    .info-card-number {
+        font-size: clamp(16px, 1.39vw, 20px);
+        font-weight: 700;
+        color: #1A73E8;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        line-height: 1;
+    }
+
+    .info-card-text {
+        font-size: clamp(12px, 0.97vw, 14px);
+        font-weight: 400;
+        color: #4D4D4D;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        line-height: 1.2;
+    }
+
+    /* Features Section */
+    .features-section {
+        padding: 3rem 3rem;
+        background: transparent;
+        position: relative;
+        z-index: 2;
+    }
+
+    .features-container {
+        max-width: 1440px;
+        margin: 0 auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2rem;
+        padding: 0 clamp(1.5rem, 10.14vw, 146px);
+        justify-content: center;
+    }
+
+    @@media (min-width: 1440px) {
+        .features-container {
+            padding: 0;
+            gap: 26.4px;
+            justify-content: center;
+        }
+    }
+
+    .feature-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        border: 2px solid;
+        width: 300px;
+        height: 200px;
+    }
+
+    @@media (min-width: 1440px) {
+        .feature-card {
+            background: transparent;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            padding: 1rem;
+            gap: 0.5rem;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            margin: 0;
+        }
+    }
+
+    .feature-card-blue {
+        border-color: #D0E4FF;
+    }
+
+    .feature-card-orange {
+        border-color: #FFE6C7;
+    }
+
+    .feature-card-red {
+        border-color: #FFBCBF;
+    }
+
+    .feature-card-purple {
+        border-color: #EAD9FF;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .feature-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        margin-bottom: 0.5rem;
+        color: #4D4D4D;
+        background: rgba(73, 144, 255, 0.1);
+        border-radius: 16px;
+        padding: 8px;
+    }
+
+    @@media (min-width: 1440px) {
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 0.25rem auto;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+
+    .feature-card-blue .feature-icon {
+        background: rgba(73, 144, 255, 0.15);
+    }
+
+    .feature-card-orange .feature-icon {
+        background: rgba(255, 152, 0, 0.15);
+    }
+
+    .feature-card-red .feature-icon {
+        background: rgba(244, 67, 54, 0.15);
+    }
+
+    .feature-card-purple .feature-icon {
+        background: rgba(156, 39, 176, 0.15);
+    }
+
+    .feature-icon img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    @@media (min-width: 1440px) {
+        .feature-icon img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+    }
+
+    .feature-title {
+        font-size: 18px;
+        font-weight: 600;
+        line-height: 28px;
+        color: #333333;
+        margin: 0;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    @@media (min-width: 1440px) {
+        .feature-title {
+            margin: 0;
+            text-align: center;
+        }
+    }
+
+    .feature-description {
+        font-size: 14px;
+        line-height: 20px;
+        color: rgba(38, 50, 56, 0.7);
+        margin: 0;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    @@media (min-width: 1440px) {
+        .feature-description {
+            margin: 0;
+            text-align: center;
+        }
+    }
+
+    /* Responsive */
+    @@media (max-width: 1200px) {
+        .hero-section {
+            padding: 120px 0 3rem;
+        }
+
+        .hero-container {
+            flex-direction: column;
+            gap: 0;
+        }
+        
+        .hero-image-container {
+            margin-left: 0;
+        }
+
+        .hero-content {
+            text-align: center;
+            align-items: center;
+            max-width: 100%;
+        }
+
+        .hero-title {
+            text-align: center;
+            align-items: center;
+        }
+
+        .hero-buttons {
+            justify-content: center;
+        }
+
+        .hero-glow-image {
+            max-width: 90%;
+            min-width: auto;
+        }
+
+        .hero-info-cards {
+            position: relative;
+            flex-direction: column;
+            justify-content: center;
+            margin-top: 2rem;
+            width: 100%;
+            gap: 1.5rem;
+        }
+
+        .info-card {
+            flex: 1;
+            max-width: 100%;
+        }
+
+        .features-container {
+            justify-content: center;
+        }
+        
+        .feature-card {
+            width: 100%;
+            max-width: 300px;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .hero-section {
+            padding: 100px 0 3rem;
+            min-height: auto;
+        }
+
+        .hero-container {
+            flex-direction: column;
+            gap: 0;
+            padding: 0 1.5rem;
+        }
+        
+        .hero-image-container {
+            margin-left: 0;
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            aspect-ratio: 805 / 729;
+            margin: 5rem 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .robot-wrapper {
+            width: 100%;
+            height: 100%;
+        }
+
+        .hero-robot-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .hero-glow-image {
+            display: none;
+        }
+
+        .hero-content {
+            width: 100%;
+            max-width: 100%;
+            text-align: center;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .hero-title {
+            text-align: center;
+            font-size: clamp(28px, 6vw, 40px);
+        }
+
+        .hero-description {
+            font-size: 14px;
+        }
+
+        .hero-buttons {
+            flex-direction: column;
+            width: 100%;
+            max-width: 100%;
+            gap: 1rem;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 0.875rem 2rem;
+            text-align: center;
+            font-size: 0.9rem;
+            justify-content: center;
+        }
+
+        .hero-info-cards {
+            position: relative;
+            flex-direction: row;
+            width: 100%;
+            margin-top: 1.5rem;
+            align-items: stretch;
+            gap: 0.5rem;
+            bottom: auto;
+            right: auto;
+        }
+
+        .info-card {
+            width: 100%;
+            max-width: 100%;
+            border-radius: 12px;
+            height: auto;
+            min-height: 50px;
+        }
+
+        .info-card-doctors,
+        .info-card-treatment {
+            width: 100%;
+            height: auto;
+            min-height: 50px;
+        }
+
+        .info-card-content {
+            gap: 0.5rem;
+            padding: 0;
+        }
+
+        .info-card-doctors .info-card-content {
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .info-card-treatment .info-card-content {
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .doctor-image {
+            width: 28px;
+            height: 28px;
+            border: 1px solid white;
+        }
+
+        .doctor-image:nth-child(2),
+        .doctor-image:nth-child(3) {
+            margin-left: -10px;
+        }
+
+        .treatment-image {
+            width: 70px;
+            height: 100%;
+            min-height: 50px;
+            border-radius: 12px 0 0 12px;
+        }
+
+        .info-card-text-wrapper {
+            gap: 0.15rem;
+            flex: 1;
+        }
+
+        .info-card-number {
+            font-size: 14px;
+        }
+
+        .info-card-text {
+            font-size: 10px;
+            line-height: 1.2;
+        }
+
+        .features-section {
+            padding: 2rem 1.5rem;
+        }
+
+        .features-container {
+            justify-content: center;
+        }
+        
+        .feature-card {
+            width: 100%;
+            max-width: 300px;
+        }
+    }
+</style>
+
+<style>
+    .drug-interaction-form-page {
+        min-height: 100vh;
+        padding: 4rem 2rem 3rem;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: transparent;
+        position: relative;
+    }
+
+    .drug-interaction-form-page::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: transparent;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .form-container {
+        max-width: 1440px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 2rem;
+        align-items: start;
+        position: relative;
+        z-index: 1;
+    }
+
+    .form-sections {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .form-section {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        margin-bottom: 1rem;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .section-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        flex-shrink: 0;
+        color: #4D4D4D;
+        background: rgba(73, 144, 255, 0.1);
+        border-radius: 16px;
+        padding: 8px;
+    }
+
+    .section-icon svg,
+    .section-icon img {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+    }
+
+    @@media (min-width: 1440px) {
+        .section-icon {
+            width: 40px;
+            height: 40px;
+        }
+    }
+
+    .section-icon-safety {
+        background: #FEF0DC;
+    }
+
+    .section-icon-diagnoses {
+        background: #DCFCE7;
+    }
+
+    .section-icon-allergies {
+        background: #FFE2E2;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #333333;
+        margin: 0;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    @@media (min-width: 1440px) {
+        .section-title {
+            font-size: 18px;
+            line-height: 25.2px;
+            font-weight: 600;
+        }
+    }
+
+    .optional-text {
+        font-size: 0.85rem;
+        font-weight: 400;
+        color: #101828;
+    }
+
+    @@media (min-width: 1440px) {
+        .optional-text {
+            font-size: 14px;
+            color: #101828;
+        }
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    @@media (min-width: 1440px) {
+        .form-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-group label {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #4D4D4D;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .form-input {
+        padding: 0.75rem 1rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        transition: all 0.3s ease;
+        background: #ffffff;
+    }
+
+    @@media (min-width: 1440px) {
+        .form-input::placeholder {
+            color: #D9D9D9;
+        }
+
+        .form-input:not(.form-select):not(.form-date) {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .form-input:not(.form-select):not(.form-date):hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(74, 144, 226, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-input:not(.form-select):not(.form-date):focus {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: #4994FF;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+            outline: none;
+        }
+    }
+
+    .form-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%234D4D4D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 12px 8px;
+        padding-right: 2.5rem;
+        cursor: pointer;
+    }
+
+    @@media (min-width: 1440px) {
+        .form-select {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #4994FF;
+        }
+    }
+
+    .form-date {
+        position: relative;
+        cursor: pointer;
+    }
+
+    @@media (min-width: 1440px) {
+        .form-date {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .form-date:focus {
+            outline: none;
+            border-color: #4994FF;
+        }
+    }
+
+    .form-date::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        opacity: 1;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #4994FF;
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    }
+
+    .form-input[readonly] {
+        background: #f5f5f5;
+        cursor: not-allowed;
+    }
+
+    .search-container {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .search-container-with-icon {
+        position: relative;
+        gap: 0;
+    }
+
+    .search-icon-wrapper {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .drug-search-results {
+        margin-top: 0.5rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        background: #ffffff;
+        max-height: 200px;
+        overflow-y: auto;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .drug-result-item {
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .drug-result-item:last-child {
+        border-bottom: none;
+    }
+
+    .drug-result-item:hover {
+        background: #f8f9fa;
+    }
+
+    .drug-result-name {
+        font-weight: 500;
+        color: #1A73E8;
+        font-size: 0.95rem;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .drug-result-generic {
+        font-size: 0.85rem;
+        color: #666;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .search-container-inline {
+        position: relative;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 0.75rem 3rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        transition: all 0.3s ease;
+    }
+
+    @@media (min-width: 1440px) {
+        .search-container-inline {
+            gap: 0;
+        }
+        
+        .search-container-inline .search-input {
+            padding-right: 2.5rem;
+        }
+        
+        .search-container-inline .search-input::placeholder {
+            color: #D9D9D9;
+        }
+    }
+
+    .add-button-inline {
+        position: absolute;
+        right: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        color: #4994FF;
+        font-size: 1.25rem;
+        cursor: pointer;
+        padding: 0;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+
+    @@media (min-width: 1440px) {
+        .add-button-inline {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+            color: #4994FF;
+        }
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #4994FF;
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    }
+
+    .search-button,
+    .add-button {
+        padding: 0.75rem 1.5rem;
+        background: #4994FF;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .search-button svg,
+    .add-button svg {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+    }
+
+    .search-button:hover,
+    .add-button:hover {
+        background: #357abd;
+        transform: translateY(-1px);
+    }
+
+    .selected-drugs {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .drug-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1rem;
+        background: rgba(239, 246, 255, 0.5);
+        border-radius: 8px;
+        border: 1px solid rgba(219, 234, 254, 1);
+        margin-bottom: 0.5rem;
+    }
+
+    .drug-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        flex: 1;
+    }
+
+    .drug-name {
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 24px;
+        color: rgba(16, 24, 40, 1);
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .drug-generic {
+        font-size: 14px;
+        color: rgba(74, 85, 101, 1);
+        font-weight: 400;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .drug-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .list-button {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0.25rem 0.5rem;
+        color: #999;
+        transition: color 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .list-button svg,
+    .list-button .calculator-icon {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+    }
+
+    .calculator-icon {
+        width: 18px;
+        height: 18px;
+        object-fit: contain;
+    }
+
+    .remove-button {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 1.1rem;
+        padding: 0.25rem 0.5rem;
+        color: #999;
+        transition: color 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .remove-button svg {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+    }
+
+    .remove-button:hover {
+        color: #e53935;
+    }
+
+    .checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        font-size: 0.95rem;
+        color: #4D4D4D;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: #4994FF;
+    }
+
+    @@media (min-width: 1440px) {
+        .checkbox-label input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #4994FF;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+    }
+
+    .custom-checkbox {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .custom-checkbox-input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        width: 20px;
+        height: 20px;
+        z-index: 1;
+    }
+
+    .custom-checkbox-mark {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #D0D5DD;
+        border-radius: 4px;
+        background: #ffffff;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .custom-checkbox-mark.checked {
+        background: #4994FF;
+        border-color: #4994FF;
+    }
+
+    .custom-checkbox-mark.checked::after {
+        content: '';
+        width: 5px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+    }
+
+    .custom-checkbox-input:focus + .custom-checkbox-mark {
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    }
+
+    .checkbox-text {
+        flex: 1;
+    }
+
+    @@media (min-width: 1440px) {
+        .custom-checkbox-mark {
+            width: 20px;
+            height: 20px;
+        }
+    }
+
+    .tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: #e3f2fd;
+        color: #1A73E8;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    @@media (min-width: 1440px) {
+        .tag-condition {
+            background: #F3F4F6;
+            border: 1px solid #E5E7EB;
+            border-radius: 10px;
+            color: #333333;
+        }
+
+        .tag-allergy {
+            background: #FEF2F2;
+            border: 1px solid #FFC9C9;
+            border-radius: 10px;
+            color: #333333;
+        }
+    }
+
+    .tag-remove {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: black;
+        font-size: 1rem;
+        padding: 0;
+        width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+
+    .tag-remove svg {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+    }
+
+    .tag-remove:hover {
+        background: #1A73E8;
+        color: white;
+    }
+
+    .form-actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 2rem;
+        padding: 2rem 0;
+    }
+
+    .btn-check-safety {
+        padding: 1rem 3rem;
+        background: #4994FF;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    @@media (min-width: 1440px) {
+        .btn-check-safety {
+            width: 655px;
+            height: 36px;
+            padding: 0;
+            justify-content: center;
+        }
+    }
+
+    .btn-check-safety svg,
+    .btn-check-safety .btn-check-icon {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+    }
+
+    .btn-check-icon {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+    }
+
+    .btn-check-safety:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+    }
+
+    .btn-clear {
+        background: transparent;
+        color: #666;
+        border: none;
+        cursor: pointer;
+        font-size: 0.95rem;
+        text-decoration: underline;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        transition: color 0.3s ease;
+    }
+
+    @@media (min-width: 1440px) {
+        .btn-clear {
+            text-decoration: none;
+            color: #4994FF;
+        }
+    }
+
+    .btn-clear:hover {
+        color: #1A73E8;
+    }
+
+    .summary-panel {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        position: sticky;
+        top: 120px;
+        height: fit-content;
+    }
+
+    .summary-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #333333;
+        margin: 0 0 1.5rem 0;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .summary-items {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .summary-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .summary-item-vertical {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    @@media (min-width: 1440px) {
+        .summary-item-vertical {
+            flex-direction: row;
+            align-items: center;
+            gap: 0.75rem;
+        }
+    }
+
+    .summary-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        flex: 1;
+    }
+
+    @@media (min-width: 1440px) {
+        .summary-content {
+            flex-direction: column;
+        }
+    }
+
+    .summary-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+        color: #4D4D4D;
+        background: rgba(77, 77, 77, 0.1);
+        border-radius: 16px;
+        padding: 6px;
+    }
+
+    @@media (min-width: 1440px) {
+        .summary-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(73, 144, 255, 0.1);
+            border-radius: 16px;
+            padding: 10px;
+        }
+    }
+
+    .summary-icon svg,
+    .summary-icon img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    @@media (min-width: 1440px) {
+        .summary-icon svg,
+        .summary-icon img {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+        }
+    }
+
+    .summary-separator {
+        height: 1px;
+        background: #E5E7EB;
+        margin: 0.5rem 0;
+    }
+
+    .summary-label {
+        flex: 1;
+        font-size: 0.9rem;
+        color: #4D4D4D;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .summary-count {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #333333;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .summary-status {
+        font-size: 0.9rem;
+        font-weight: 600;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .summary-status.on {
+        color: #FFB050;
+    }
+
+    .summary-status.off {
+        color: #999;
+    }
+
+    /* Responsive */
+    @@media (max-width: 1024px) {
+        .form-container {
+            grid-template-columns: 1fr;
+        }
+
+        .summary-panel {
+            position: relative;
+            top: 0;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .drug-interaction-form-page {
+            padding: 100px 1rem 2rem;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .btn-check-safety {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<DrugDoseCalculatorModal IsOpen="isCalculatorModalOpen"
+                         DrugName="@(calculatorSelectedDrug?.Name ?? string.Empty)"
+                         CalculatorData="calculatorData"
+                         OnClose="CloseCalculator" />
+
+@code {
+    // Patient Information Model
+    private class PatientInfo
+    {
+        public string Gender { get; set; } = "";
+        public DateTime? BirthDate { get; set; }
+        public int? Age { get; set; }
+        public decimal? Weight { get; set; }
+    }
+
+    // Drug Model
+    private class Drug
+    {
+        public string Name { get; set; } = "";
+        public string GenericName { get; set; } = "";
+    }
+
+    // Safety Options Model
+    private class SafetyOptions
+    {
+        public bool CheckPregnancy { get; set; } = false;
+        public bool CheckLactation { get; set; } = false;
+    }
+
+    private PatientInfo patientInfo = new();
+    private SafetyOptions safetyOptions = new();
+    private List<Drug> selectedDrugs = new();
+    private List<Drug> drugSearchResults = new();
+    private List<string> conditions = new();
+    private List<string> allergies = new();
+
+    private bool isCalculatorModalOpen = false;
+    private Drug? calculatorSelectedDrug;
+    private string? calculatorData;
+
+    private string drugSearchQuery = "";
+    private string conditionSearchQuery = "";
+    private string allergySearchQuery = "";
+    private bool isSearchingDrugs = false;
+    private bool isCheckingSafety = false;
+
+    private string DrugSearchQuery
+    {
+        get => drugSearchQuery;
+        set
+        {
+            drugSearchQuery = value;
+            _ = SearchDrugAsync();
+        }
+    }
+
+    private DateTime? BirthDate
+    {
+        get => patientInfo.BirthDate;
+        set
+        {
+            patientInfo.BirthDate = value;
+            CalculateAge();
+        }
+    }
+
+    private void CalculateAge()
+    {
+        if (patientInfo.BirthDate.HasValue)
+        {
+            var today = DateTime.Today;
+            var birthDate = patientInfo.BirthDate.Value;
+            patientInfo.Age = today.Year - birthDate.Year;
+            if (birthDate.Date > today.AddYears(-(int)patientInfo.Age)) patientInfo.Age--;
+        }
+        else
+        {
+            patientInfo.Age = null;
+        }
+    }
+
+    private async Task SearchDrugAsync()
+    {
+        if (string.IsNullOrWhiteSpace(drugSearchQuery))
+        {
+            drugSearchResults.Clear();
+            return;
+        }
+
+        isSearchingDrugs = true;
+        StateHasChanged();
+
+        try
+        {
+            // TODO: Replace with actual API endpoint
+            // Example: var response = await Http.GetFromJsonAsync<List<Drug>>($"/api/drugs/search?query={Uri.EscapeDataString(drugSearchQuery)}");
+            // drugSearchResults = response ?? new List<Drug>();
+
+            // Fallback to mock data for now
+            await Task.Delay(300); // Simulate API delay
+            drugSearchResults = new List<Drug>
+            {
+                new Drug { Name = drugSearchQuery, GenericName = $"{drugSearchQuery} Generic" },
+                new Drug { Name = $"{drugSearchQuery} Plus", GenericName = $"{drugSearchQuery} Generic Plus" }
+            };
+        }
+        catch (Exception ex)
+        {
+            // TODO: Add proper error handling/logging
+            Console.WriteLine($"Error searching drugs: {ex.Message}");
+            drugSearchResults.Clear();
+        }
+        finally
+        {
+            isSearchingDrugs = false;
+            StateHasChanged();
+        }
+    }
+
+    private void AddDrugFromSearch(Drug drug)
+    {
+        if (!selectedDrugs.Any(d => d.Name == drug.Name))
+        {
+            selectedDrugs.Add(drug);
+            drugSearchQuery = "";
+            drugSearchResults.Clear();
+        }
+    }
+
+    private void RemoveDrug(Drug drug)
+    {
+        selectedDrugs.Remove(drug);
+    }
+
+    private async Task OpenCalculatorAsync(Drug drug)
+    {
+        calculatorSelectedDrug = drug;
+        isCalculatorModalOpen = true;
+
+        // Lock background scroll while modal is open
+        if (JS != null)
+        {
+            await JS.InvokeVoidAsync("smartRxModal.lockBodyScroll", true);
+        }
+
+        try
+        {
+            // TODO: Replace with actual API endpoint
+            // Example: calculatorData = await Http.GetFromJsonAsync<string>($"/api/drug-calculator/{Uri.EscapeDataString(drug.Name)}");
+            
+            // For now, keep static/example content as fallback
+            calculatorData = $"Static calculator data for {drug.Name} (replace with API response).";
+        }
+        catch (Exception ex)
+        {
+            // TODO: Add proper error handling/logging
+            Console.WriteLine($"Error loading calculator data: {ex.Message}");
+            calculatorData = null;
+        }
+    }
+
+    private async Task CloseCalculator()
+    {
+        isCalculatorModalOpen = false;
+        calculatorSelectedDrug = null;
+        calculatorData = null;
+
+        // Re-enable background scroll when modal closes
+        if (JS != null)
+        {
+            await JS.InvokeVoidAsync("smartRxModal.lockBodyScroll", false);
+        }
+    }
+
+    private void AddCondition()
+    {
+        if (!string.IsNullOrWhiteSpace(conditionSearchQuery) && !conditions.Contains(conditionSearchQuery))
+        {
+            conditions.Add(conditionSearchQuery);
+            conditionSearchQuery = "";
+        }
+    }
+
+    private void RemoveCondition(string condition)
+    {
+        conditions.Remove(condition);
+    }
+
+    private void AddAllergy()
+    {
+        if (!string.IsNullOrWhiteSpace(allergySearchQuery) && !allergies.Contains(allergySearchQuery))
+        {
+            allergies.Add(allergySearchQuery);
+            allergySearchQuery = "";
+        }
+    }
+
+    private void RemoveAllergy(string allergy)
+    {
+        allergies.Remove(allergy);
+    }
+
+    private async Task CheckDrugSafety()
+    {
+        if (selectedDrugs.Count == 0)
+        {
+            // TODO: Show validation message to user
+            return;
+        }
+
+        isCheckingSafety = true;
+        StateHasChanged();
+
+        try
+        {
+            // Collect all the form data
+            var formData = new
+            {
+                PatientInfo = patientInfo,
+                SelectedDrugs = selectedDrugs,
+                SafetyOptions = safetyOptions,
+                Conditions = conditions,
+                Allergies = allergies
+            };
+
+            // TODO: Replace with actual API endpoint
+            // Example: 
+            // var response = await Http.PostAsJsonAsync("/api/drug-interaction/check", formData);
+            // if (response.IsSuccessStatusCode)
+            // {
+            //     var results = await response.Content.ReadFromJsonAsync<DrugInteractionResults>();
+            //     // Store results in session storage or pass via navigation state
+            //     await JS.InvokeVoidAsync("sessionStorage.setItem", "drugCheckResults", JsonSerializer.Serialize(results));
+            //     Navigation.NavigateTo("/drug-interaction-results");
+            // }
+            // else
+            // {
+            //     // Handle error
+            // }
+
+            // For now, navigate to results page (which will use mock data)
+            // In the future, you can pass the API response data through navigation state or session storage
+            await Task.Delay(500); // Simulate API call
+            
+            // Check if we're in the dashboard context
+            var currentUri = Navigation.ToAbsoluteUri(Navigation.Uri);
+            var isInDashboard = currentUri.AbsolutePath.StartsWith("/dashboard", StringComparison.OrdinalIgnoreCase);
+            
+            // Navigate to the appropriate results page based on context
+            var resultsRoute = isInDashboard ? "/dashboard/drug-interaction-results" : "/drug-interaction-results";
+            Navigation.NavigateTo(resultsRoute);
+        }
+        catch (Exception ex)
+        {
+            // TODO: Add proper error handling/logging and user notification
+            Console.WriteLine($"Error checking drug safety: {ex.Message}");
+        }
+        finally
+        {
+            isCheckingSafety = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ClearAll()
+    {
+        patientInfo = new PatientInfo();
+        safetyOptions = new SafetyOptions();
+        selectedDrugs.Clear();
+        drugSearchResults.Clear();
+        conditions.Clear();
+        allergies.Clear();
+        drugSearchQuery = "";
+        conditionSearchQuery = "";
+        allergySearchQuery = "";
+    }
+}

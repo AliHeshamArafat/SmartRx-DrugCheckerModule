@@ -1,0 +1,37 @@
+@inherits LayoutComponentBase
+
+<div class="page">
+    <div class="background-container"></div>
+    <main class="main-content">
+        @Body
+    </main>
+    <FooterSection />
+</div>
+
+<style>
+    .page {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        position: relative;
+        background-color: #ffffff;
+    }
+
+    .background-container {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background-image: url('/images/bg.svg');
+        background-size: cover;
+        background-position: center top;
+        background-repeat: no-repeat;
+    }
+
+    .main-content {
+        flex: 1;
+        position: relative;
+        z-index: 1;
+    }
+</style>
+

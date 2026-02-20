@@ -1,0 +1,297 @@
+@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.Routing
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<div class="dashboard-page">
+    <div class="background-container"></div>
+    
+    <div class="dashboard-container">
+        <!-- Side Panel -->
+        <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <img src="images/Doctor.png" alt="User Avatar" />
+                </div>
+                <div class="user-info">
+                    <div class="user-name">Dr / @GetUserName()</div>
+                    <div class="user-email">@GetUserEmail()</div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <NavLink href="/dashboard/drug-checker" class="nav-item" Match="NavLinkMatch.Prefix">
+                <img src="images/Home.png" alt="" class="nav-icon" />
+                <span>Drug Checker</span>
+            </NavLink>
+
+            <NavLink href="/dashboard/history" class="nav-item" Match="NavLinkMatch.Prefix">
+                <img src="images/History.svg" alt="" class="nav-icon" />
+                <span>History</span>
+            </NavLink>
+
+            <div class="nav-separator"></div>
+
+            <NavLink href="/dashboard/organization" class="nav-item" Match="NavLinkMatch.Prefix">
+                <img src="images/Organization.svg" alt="" class="nav-icon" />
+                <span>Organization</span>
+            </NavLink>
+
+            <NavLink href="/dashboard/pricing" class="nav-item" Match="NavLinkMatch.Prefix">
+                <img src="images/Document.svg" alt="" class="nav-icon" />
+                <span>Pricing</span>
+            </NavLink>
+        </nav>
+
+        <div class="nav-separator sidebar-bottom-separator"></div>
+
+        <nav class="sidebar-nav sidebar-nav-bottom">
+            <NavLink href="/dashboard/help" class="nav-item" Match="NavLinkMatch.Prefix">
+                <img src="images/Help.svg" alt="" class="nav-icon" />
+                <span>Help</span>
+            </NavLink>
+
+            <NavLink href="/dashboard/settings" class="nav-item" Match="NavLinkMatch.Prefix">
+                <img src="images/Settings.svg" alt="" class="nav-icon" />
+                <span>Settings</span>
+            </NavLink>
+        </nav>
+    </aside>
+
+        <!-- Main Content Area -->
+        <main class="dashboard-main">
+            <DashboardNavBar />
+            <div class="dashboard-content">
+                @Body
+            </div>
+        </main>
+    </div>
+</div>
+
+<style>
+    .dashboard-page {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        position: relative;
+        background-color: #ffffff;
+    }
+
+    .background-container {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background-image: url('/images/bg.svg');
+        background-size: cover;
+        background-position: center top;
+        background-repeat: no-repeat;
+    }
+
+    .dashboard-container {
+        display: flex;
+        min-height: 100vh;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        position: relative;
+        z-index: 1;
+    }
+
+    .sidebar {
+        width: 330px;
+        background: #ffffff;
+        border-right: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        height: 100vh;
+        overflow-y: auto;
+        z-index: 10;
+        top: 0;
+        left: 0;
+    }
+
+    .sidebar-header {
+        padding: 2rem 1.5rem;
+    }
+
+    .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .user-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        overflow: visible;
+        background: linear-gradient(270deg, #FFFFFF 19.36%, #4994FF 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        box-shadow: var(--sds-size-depth-0) var(--sds-size-depth-025) var(--sds-size-depth-100) var(--sds-size-depth-0) var(--sds-color-black-100);
+        position: relative;
+    }
+
+    .user-avatar img {
+        width: calc(100% - 4px);
+        height: calc(100% - 4px);
+        object-fit: cover;
+        border-radius: 10px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .user-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .user-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 0.25rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .user-email {
+        font-size: 14px;
+        color: #6b7280;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sidebar-nav {
+        padding: 1rem 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .sidebar-nav:first-of-type {
+        flex: 1;
+    }
+
+    .sidebar-nav-bottom {
+        margin-top: auto;
+        padding-top: 0;
+    }
+
+    .sidebar-bottom-separator {
+        margin-top: auto;
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent;
+    }
+
+    .nav-item:hover {
+        background: #f9fafb;
+        color: #4994FF;
+    }
+
+    .nav-item.active {
+        background: #f0f7ff;
+        color: #4994FF;
+        border-left-color: #4994FF;
+    }
+
+    .nav-item svg {
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+    }
+
+    .nav-icon {
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+        transition: filter 0.2s ease, opacity 0.2s ease;
+    }
+
+    .nav-item:hover .nav-icon,
+    .nav-item.active .nav-icon {
+        filter: brightness(0) saturate(100%) invert(45%) sepia(93%) saturate(1352%) hue-rotate(195deg) brightness(101%) contrast(101%);
+    }
+
+    .nav-separator {
+        height: 1px;
+        background: #e5e7eb;
+        margin: 0.5rem 1.5rem;
+    }
+
+    .dashboard-main {
+        flex: 1;
+        margin-left: 330px;
+        min-height: 100vh;
+        background: transparent;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .dashboard-content {
+        width: 100%;
+        flex: 1;
+        padding-top: 150px;
+    }
+
+    /* Responsive */
+    @@media (max-width: 992px) {
+        .dashboard-content {
+            padding-top: 100px;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .sidebar {
+            width: 100%;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .dashboard-main {
+            margin-left: 0;
+        }
+
+        .dashboard-content {
+            padding-top: 80px;
+        }
+    }
+</style>
+
+@code {
+    private string GetUserName()
+    {
+        // TODO: Get from authentication state or user service
+        return "John Doe";
+    }
+
+    private string GetUserEmail()
+    {
+        // TODO: Get from authentication state or user service
+        return "john.doe@example.com";
+    }
+}

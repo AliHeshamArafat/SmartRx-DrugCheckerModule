@@ -1,0 +1,130 @@
+@page "/"
+@using Microsoft.AspNetCore.Components.Web
+@namespace SmartRx_DrugChecker.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="~/" />
+    <title>SmartRX</title>
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico" />
+    <link href="css/site.css" rel="stylesheet" />
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+</head>
+<body>
+    <component type="typeof(App)" render-mode="ServerPrerendered" />
+
+    <div id="blazor-error-ui">
+        <environment include="Staging,Production">
+            An error has occurred. This application may no longer respond until reloaded.
+        </environment>
+        <environment include="Development">
+            An unhandled exception has occurred. See browser dev tools for details.
+        </environment>
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <script src="_framework/blazor.server.js"></script>
+    <script>
+        window.smartRxModal = {
+            lockBodyScroll: function (isLocked) {
+                if (isLocked) {
+                    document.body.dataset.smartRxModalLocked = "true";
+                    document.body.style.overflow = "hidden";
+                } else {
+                    delete document.body.dataset.smartRxModalLocked;
+                    document.body.style.overflow = "";
+                }
+            }
+        };
+
+        window.scrollToSection = function(sectionId) {
+            const element = document.getElementById(sectionId);
+            if (element) {
+                const offset = 100; // Account for fixed navbar
+                const elementPosition = element.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - offset;
+                
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+            }
+        };
+
+        window.scrollToTop = function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        };
+
+        // Update active section on scroll
+        window.updateActiveSectionOnScroll = function(dotNetHelper) {
+            const sections = ['home', 'our-story', 'our-blog', 'services', 'why-smartrx', 'contact'];
+            
+            const observerOptions = {
+                root: null,
+                rootMargin: '-20% 0px -70% 0px',
+                threshold: 0
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const sectionId = entry.target.id;
+                        if (sections.includes(sectionId)) {
+                            dotNetHelper.invokeMethodAsync('SetActiveSection', sectionId);
+                        }
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(sectionId => {
+                const element = document.getElementById(sectionId);
+                if (element) {
+                    observer.observe(element);
+                }
+            });
+        };
+
+        // Update active section on scroll for blog details page
+        window.updateBlogActiveSectionOnScroll = function(dotNetHelper) {
+            const observerOptions = {
+                root: null,
+                rootMargin: '-30% 0px -60% 0px',
+                threshold: 0
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const sectionId = entry.target.id;
+                        if (sectionId) {
+                            dotNetHelper.invokeMethodAsync('SetActiveSectionFromScroll', sectionId);
+                        }
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all article sections
+            const sections = document.querySelectorAll('.article-section[id]');
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+
+            // Also observe conclusion and afterword if they exist
+            const conclusion = document.getElementById('conclusion');
+            if (conclusion) observer.observe(conclusion);
+            
+            const afterword = document.getElementById('afterword');
+            if (afterword) observer.observe(afterword);
+        };
+    </script>
+</body>
+</html>
+
