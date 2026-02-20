@@ -3,7 +3,8 @@ var contentRoot = Directory.GetCurrentDirectory();
 var projectRoot = contentRoot;
 
 // If running from bin directory, find the project root by looking for .csproj file
-if (contentRoot.Contains(@"\bin\Debug") || contentRoot.Contains(@"\bin\Release"))
+if (contentRoot.Contains(@"\bin\Debug") || contentRoot.Contains(@"\bin\Release") || 
+    contentRoot.Contains("/bin/Debug") || contentRoot.Contains("/bin/Release"))
 {
     var currentDir = new DirectoryInfo(contentRoot);
     while (currentDir != null && !currentDir.GetFiles("*.csproj").Any())
@@ -70,5 +71,13 @@ app.UseRouting();
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
+
+// Configure port for Render (uses PORT environment variable)
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+{
+    app.Urls.Clear();
+    app.Urls.Add($"http://0.0.0.0:{port}");
+}
 
 app.Run();

@@ -13,10 +13,12 @@ RUN dotnet publish -c Release -o /app/publish
 # Use the .NET 8.0 runtime image for running
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
-EXPOSE 8080
-ENV ASPNETCORE_URLS=http://+:8080
 
 # Copy published app from build stage
 COPY --from=build /app/publish .
+
+# Render will set PORT environment variable automatically
+# The app will read it from Program.cs
+EXPOSE 10000
 
 ENTRYPOINT ["dotnet", "SmartRx-DrugChecker.dll"]
