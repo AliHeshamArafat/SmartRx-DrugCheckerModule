@@ -1,28 +1,12 @@
-// Configure ContentRoot and WebRoot to point to project directory (not bin directory)
+// Configure ContentRoot and WebRoot
+// In published apps, current directory is the publish folder
 var contentRoot = Directory.GetCurrentDirectory();
-var projectRoot = contentRoot;
+var wwwrootPath = Path.Combine(contentRoot, "wwwroot");
 
-// If running from bin directory, find the project root by looking for .csproj file
-if (contentRoot.Contains(@"\bin\Debug") || contentRoot.Contains(@"\bin\Release") || 
-    contentRoot.Contains("/bin/Debug") || contentRoot.Contains("/bin/Release"))
-{
-    var currentDir = new DirectoryInfo(contentRoot);
-    while (currentDir != null && !currentDir.GetFiles("*.csproj").Any())
-    {
-        currentDir = currentDir.Parent;
-    }
-    if (currentDir != null)
-    {
-        projectRoot = currentDir.FullName;
-    }
-}
-
-var wwwrootPath = Path.Combine(projectRoot, "wwwroot");
-
-// Create builder with WebApplicationOptions to set content root and web root
+// Create builder with WebApplicationOptions
 var options = new WebApplicationOptions
 {
-    ContentRootPath = projectRoot,
+    ContentRootPath = contentRoot,
     WebRootPath = Directory.Exists(wwwrootPath) ? wwwrootPath : null
 };
 
@@ -78,6 +62,14 @@ if (!string.IsNullOrEmpty(port))
 {
     app.Urls.Clear();
     app.Urls.Add($"http://0.0.0.0:{port}");
+    Console.WriteLine($"Application listening on port {port}");
 }
+else
+{
+    Console.WriteLine("PORT environment variable not set, using default port");
+}
+
+Console.WriteLine($"Content Root: {app.Environment.ContentRootPath}");
+Console.WriteLine($"Web Root: {app.Environment.WebRootPath}");
 
 app.Run();
