@@ -9,3 +9,6 @@ export DOTNET_ROOT="/tmp/dotnet"
 # Restore and publish
 dotnet restore
 dotnet publish -c Release -o ./publish
+
+# Make start script executable
+chmod +x render-start.sh
