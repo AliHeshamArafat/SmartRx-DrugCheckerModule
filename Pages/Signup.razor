@@ -560,8 +560,10 @@
         formSubmitted = true;
         if (editContext != null && editContext.Validate())
         {
-            Console.WriteLine($"Sign up: {registration.Email}, Phone: {registration.CountryCode} {registration.Phone}");
-            // Here you would complete registration
+            // Combine country code and phone number
+            string fullPhoneNumber = $"{registration.CountryCode}{registration.Phone.Replace(" ", "")}";
+            Console.WriteLine($"Sign up: {registration.Email}, Phone: {fullPhoneNumber}");
+            // Here you would complete registration with the combined phone number
         }
         StateHasChanged();
     }

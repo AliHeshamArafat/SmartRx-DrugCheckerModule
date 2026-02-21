@@ -5,6 +5,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <div id="drug-interaction-form" class="drug-interaction-form-page">
+    <!-- Plan Banner -->
+    <div class="plan-banner">
+        <div class="plan-banner-content">
+            <div class="plan-info">
+                <span class="plan-label">Current Plan</span>
+                <span class="plan-name">@CurrentPlan</span>
+            </div>
+            <div class="tokens-info">
+                <span class="tokens-label">Tokens Remaining</span>
+                <span class="tokens-count">@TokensRemaining</span>
+            </div>
+        </div>
+    </div>
+    
     <div class="form-container">
         <!-- Left Panel: Form Sections -->
         <div class="form-sections">
@@ -31,18 +45,18 @@
                         <input type="date" @bind="BirthDate" @bind:event="onchange" id="birthDate" class="form-input form-date" placeholder="mm/dd/yyyy" />
                     </div>
                     <div class="form-group">
-                        <label>Age (auto-calculated)</label>
+                        <label>Age</label>
                         <div class="age-input-container">
                             <div class="age-input-part">
-                                <input type="number" value="@patientInfo.AgeYears" id="ageYears" class="form-input age-input" placeholder="Y" readonly />
+                                <input type="number" @bind="AgeYears" @bind:event="onchange" id="ageYears" class="form-input age-input" placeholder="Y" min="0" />
                                 <span class="age-label">Years</span>
                             </div>
                             <div class="age-input-part">
-                                <input type="number" value="@patientInfo.AgeMonths" id="ageMonths" class="form-input age-input" placeholder="M" readonly />
+                                <input type="number" @bind="AgeMonths" @bind:event="onchange" id="ageMonths" class="form-input age-input" placeholder="M" min="0" max="11" />
                                 <span class="age-label">Months</span>
                             </div>
                             <div class="age-input-part">
-                                <input type="number" value="@patientInfo.AgeDays" id="ageDays" class="form-input age-input" placeholder="D" readonly />
+                                <input type="number" @bind="AgeDays" @bind:event="onchange" id="ageDays" class="form-input age-input" placeholder="D" min="0" max="30" />
                                 <span class="age-label">Days</span>
                             </div>
                         </div>
@@ -213,54 +227,61 @@
             </div>
         </div>
 
-        <!-- Right Panel: Summary -->
-        <div class="summary-panel">
-            <h2 class="summary-title">Summary</h2>
-            <div class="summary-items">
-                <div class="summary-item">
-                    <span class="summary-icon">
-                        <img src="images/Capsule.png" alt="Capsule" />
-                    </span>
-                    <span class="summary-label">Drugs selected</span>
-                    <span class="summary-count">@selectedDrugs.Count</span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-icon">
-                        <img src="images/Examine.png" alt="Examine" />
-                    </span>
-                    <span class="summary-label">Conditions</span>
-                    <span class="summary-count">@conditions.Count</span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-icon">
-                        <img src="images/Warning.png" alt="Warning" />
-                    </span>
-                    <span class="summary-label">Allergies</span>
-                    <span class="summary-count">@allergies.Count</span>
-                </div>
-                <div class="summary-separator"></div>
-                <div class="summary-item summary-item-vertical">
-                    <span class="summary-icon">
-                        <img src="images/Baby.png" alt="Baby" />
-                    </span>
-                    <div class="summary-content">
-                        <span class="summary-label">Pregnancy check</span>
-                        <span class="summary-status @(safetyOptions.CheckPregnancy ? "on" : "off")">@(safetyOptions.CheckPregnancy ? "On" : "Off")</span>
+        <!-- Right Panel: Summary and Ads -->
+        <div class="right-panel-wrapper">
+            <div class="summary-panel">
+                <h2 class="summary-title">Summary</h2>
+                <div class="summary-items">
+                    <div class="summary-item">
+                        <span class="summary-icon">
+                            <img src="images/Capsule.png" alt="Capsule" />
+                        </span>
+                        <span class="summary-label">Drugs selected</span>
+                        <span class="summary-count">@selectedDrugs.Count</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-icon">
+                            <img src="images/Examine.png" alt="Examine" />
+                        </span>
+                        <span class="summary-label">Conditions</span>
+                        <span class="summary-count">@conditions.Count</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-icon">
+                            <img src="images/Warning.png" alt="Warning" />
+                        </span>
+                        <span class="summary-label">Allergies</span>
+                        <span class="summary-count">@allergies.Count</span>
+                    </div>
+                    <div class="summary-separator"></div>
+                    <div class="summary-item summary-item-vertical">
+                        <span class="summary-icon">
+                            <img src="images/Baby.png" alt="Baby" />
+                        </span>
+                        <div class="summary-content">
+                            <span class="summary-label">Pregnancy check</span>
+                            <span class="summary-status @(safetyOptions.CheckPregnancy ? "on" : "off")">@(safetyOptions.CheckPregnancy ? "On" : "Off")</span>
+                        </div>
+                    </div>
+                    <div class="summary-item summary-item-vertical">
+                        <span class="summary-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 16V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 8H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                        <div class="summary-content">
+                            <span class="summary-label">Lactation check</span>
+                            <span class="summary-status @(safetyOptions.CheckLactation ? "on" : "off")">@(safetyOptions.CheckLactation ? "On" : "Off")</span>
+                        </div>
                     </div>
                 </div>
-                <div class="summary-item summary-item-vertical">
-                    <span class="summary-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M12 16V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M12 8H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </span>
-                    <div class="summary-content">
-                        <span class="summary-label">Lactation check</span>
-                        <span class="summary-status @(safetyOptions.CheckLactation ? "on" : "off")">@(safetyOptions.CheckLactation ? "On" : "Off")</span>
-                    </div>
-                </div>
+            </div>
+            
+            <!-- Ads Container -->
+            <div class="ads-container">
+                <!-- Ads will be inserted here as images -->
             </div>
         </div>
     </div>
@@ -307,10 +328,15 @@
     private bool isCalculatorModalOpen = false;
     private Drug? calculatorSelectedDrug;
     private string? calculatorData;
+    private bool isUpdatingFromAge = false;
 
     private string drugSearchQuery = "";
     private string conditionSearchQuery = "";
     private string allergySearchQuery = "";
+
+    // Plan and Tokens (TODO: Replace with actual data from API/service)
+    private string CurrentPlan { get; set; } = "Individual";
+    private int TokensRemaining { get; set; } = 150;
 
     private string DrugSearchQuery
     {
@@ -328,7 +354,40 @@
         set
         {
             patientInfo.BirthDate = value;
-            CalculateAge();
+            if (!isUpdatingFromAge)
+            {
+                CalculateAge();
+            }
+        }
+    }
+
+    private int? AgeYears
+    {
+        get => patientInfo.AgeYears;
+        set
+        {
+            patientInfo.AgeYears = value;
+            CalculateBirthDateFromAge();
+        }
+    }
+
+    private int? AgeMonths
+    {
+        get => patientInfo.AgeMonths;
+        set
+        {
+            patientInfo.AgeMonths = value;
+            CalculateBirthDateFromAge();
+        }
+    }
+
+    private int? AgeDays
+    {
+        get => patientInfo.AgeDays;
+        set
+        {
+            patientInfo.AgeDays = value;
+            CalculateBirthDateFromAge();
         }
     }
 
@@ -376,6 +435,47 @@
             patientInfo.AgeYears = null;
             patientInfo.AgeMonths = null;
             patientInfo.AgeDays = null;
+        }
+    }
+
+    private void CalculateBirthDateFromAge()
+    {
+        // Only calculate if at least one age field has a value
+        if (patientInfo.AgeYears.HasValue || patientInfo.AgeMonths.HasValue || patientInfo.AgeDays.HasValue)
+        {
+            var today = DateTime.Today;
+            var years = patientInfo.AgeYears ?? 0;
+            var months = patientInfo.AgeMonths ?? 0;
+            var days = patientInfo.AgeDays ?? 0;
+
+            // Validate age values
+            if (years < 0) years = 0;
+            if (months < 0 || months > 11) months = Math.Max(0, Math.Min(11, months));
+            if (days < 0 || days > 30) days = Math.Max(0, Math.Min(30, days));
+
+            // Calculate birth date by subtracting age from today
+            var calculatedBirthDate = today
+                .AddYears(-years)
+                .AddMonths(-months)
+                .AddDays(-days);
+
+            // Ensure the birth date is not in the future
+            if (calculatedBirthDate > today)
+            {
+                calculatedBirthDate = today;
+            }
+
+            // Set flag to prevent circular update
+            isUpdatingFromAge = true;
+            patientInfo.BirthDate = calculatedBirthDate;
+            isUpdatingFromAge = false;
+        }
+        else
+        {
+            // If all age fields are empty, clear the birth date
+            isUpdatingFromAge = true;
+            patientInfo.BirthDate = null;
+            isUpdatingFromAge = false;
         }
     }
 
@@ -521,6 +621,90 @@
         position: relative;
     }
 
+    .plan-banner {
+        max-width: 1440px;
+        margin: 0 auto 2rem auto;
+        border-radius: 12px;
+        padding: 1.5rem 2rem;
+        background: #FFFFFF;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(73, 148, 255, 0.2);
+    }
+
+    .plan-banner::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(206.06deg, #4994FF 19%, #3D76C7 83.58%);
+        background-blend-mode: multiply;
+        z-index: 0;
+    }
+
+    .plan-banner::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(58.33% 5.78% at 50% 91.11%, rgba(73, 148, 255, 0.5) 0%, rgba(255, 255, 255, 0) 100%);
+        z-index: 1;
+    }
+
+    .plan-banner-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .plan-info,
+    .tokens-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .plan-label,
+    .tokens-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.9);
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .plan-name,
+    .tokens-count {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #FFFFFF;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    @@media (max-width: 768px) {
+        .plan-banner {
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .plan-banner-content {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .plan-name,
+        .tokens-count {
+            font-size: 1.25rem;
+        }
+    }
+
     .form-container {
         max-width: 1440px;
         margin: 0 auto;
@@ -530,6 +714,16 @@
         align-items: start;
         position: relative;
         z-index: 1;
+    }
+
+    .right-panel-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        position: sticky;
+        top: 20px;
+        height: fit-content;
+        align-self: start;
     }
 
     .form-sections {
@@ -637,10 +831,6 @@
         box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
     }
 
-    .form-input[readonly] {
-        background: #f5f5f5;
-        cursor: not-allowed;
-    }
 
     .age-input-container {
         display: flex;
@@ -1075,26 +1265,24 @@
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         border-radius: 12px;
-        padding: 2rem;
+        padding: 1.25rem;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         border: 1px solid rgba(0, 0, 0, 0.08);
-        position: sticky;
-        top: 20px;
         height: fit-content;
     }
 
     .summary-title {
-        font-size: 1.25rem;
+        font-size: 1.1rem;
         font-weight: 600;
         color: #333333;
-        margin: 0 0 1.5rem 0;
+        margin: 0 0 1rem 0;
         font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
     .summary-items {
         display: flex;
         flex-direction: column;
-        gap: 1.5rem;
+        gap: 1rem;
     }
 
     .summary-item {
@@ -1170,12 +1358,35 @@
         color: #999;
     }
 
+    .ads-container {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .ads-container img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        object-fit: contain;
+    }
+
     @@media (max-width: 1024px) {
         .form-container {
             grid-template-columns: 1fr;
         }
 
-        .summary-panel {
+        .right-panel-wrapper {
             position: relative;
             top: 0;
         }

@@ -1,0 +1,663 @@
+@using SmartRx_DrugChecker.Services
+@implements IDisposable
+
+@if (IsOpen)
+{
+    <div class="modal-backdrop" @onclick="HandleBackdropClick"></div>
+    <div class="modal-container">
+        <div class="modal-content">
+            <!-- Header -->
+            <div class="modal-header">
+                <div class="modal-header-left">
+                    <div class="speech-bubble-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="modal-title-group">
+                        <h2 class="modal-title">Share Your Feedback</h2>
+                        <p class="modal-subtitle">Help us improve SmartRx</p>
+                    </div>
+                </div>
+                <button class="modal-close-btn" @onclick="CloseModal" aria-label="Close modal">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Form -->
+            <form class="feedback-form" @onsubmit="HandleSubmit" @onsubmit:preventDefault="true">
+                <!-- Experience Rating -->
+                <div class="form-group">
+                    <label class="form-label">How would you rate your experience?</label>
+                    <div class="star-rating-wrapper">
+                        <div class="star-rating" @onmouseleave="() => hoverRating = 0">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                var starIndex = i;
+                                var isFilled = GetStarFill(starIndex);
+                                var isSelected = rating >= starIndex;
+                                var isHovered = hoverRating > 0 && hoverRating >= starIndex;
+                                <button type="button" class="star-btn @(isSelected ? "filled" : "") @(isHovered ? "hover-filled" : "")" @onclick="() => SetRating(starIndex)" @onmouseenter="() => SetHoverRating(starIndex)">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" 
+                                              stroke="currentColor" 
+                                              stroke-width="2" 
+                                              stroke-linecap="round" 
+                                              stroke-linejoin="round"
+                                              fill="@(isFilled ? "currentColor" : "none")"/>
+                                    </svg>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Name -->
+                <div class="form-group">
+                    <label class="form-label" for="feedback-name">Name</label>
+                    <input id="feedback-name" 
+                           class="form-input" 
+                           type="text" 
+                           placeholder="Name" 
+                           @bind="feedbackData.Name" 
+                           @bind:event="oninput" />
+                </div>
+
+                <!-- Feedback Textarea -->
+                <div class="form-group">
+                    <label class="form-label" for="feedback-message">
+                        Your Feedback <span class="required-asterisk">*</span>
+                    </label>
+                    <textarea id="feedback-message" 
+                              class="form-textarea" 
+                              placeholder="Tell us what you think..." 
+                              rows="5" 
+                              @bind="feedbackData.Feedback" 
+                              @bind:event="oninput"
+                              required></textarea>
+                </div>
+
+                <!-- Email (Optional) -->
+                <div class="form-group">
+                    <label class="form-label" for="feedback-email">Email Address (Optional)</label>
+                    <input id="feedback-email" 
+                           class="form-input" 
+                           type="email" 
+                           placeholder="your@email.com" 
+                           @bind="feedbackData.Email" 
+                           @bind:event="oninput" />
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="submit-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="submit-icon">
+                        <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Submit Feedback</span>
+                </button>
+            </form>
+        </div>
+    </div>
+}
+
+@if (showConfirmClose)
+{
+    <div class="confirm-modal-backdrop" @onclick="CancelClose"></div>
+    <div class="confirm-modal-container">
+        <div class="confirm-modal-content">
+            <h3 class="confirm-modal-title">Discard Feedback?</h3>
+            <p class="confirm-modal-message">Are you sure you want to close without submitting your feedback?</p>
+            <div class="confirm-modal-actions">
+                <button type="button" class="confirm-btn cancel-btn" @onclick="CancelClose">Cancel</button>
+                <button type="button" class="confirm-btn confirm-close-btn" @onclick="ConfirmClose">Discard</button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 1000;
+        animation: fadeIn 0.2s ease;
+    }
+
+    .modal-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-end;
+        z-index: 1001;
+        padding: 1rem;
+        animation: fadeIn 0.2s ease;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 550px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideInRight 0.3s ease;
+        position: relative;
+        margin-top: 2rem;
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 1.5rem 1.5rem 1rem 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        background: linear-gradient(90deg, rgba(73, 148, 255, 0.05) 0%, rgba(239, 246, 255, 0.5) 100%) !important;
+        border-radius: 16px 16px 0 0;
+    }
+
+    .modal-header-left {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        flex: 1;
+    }
+
+    .speech-bubble-icon {
+        width: 48px;
+        height: 48px;
+        background: #EFF6FF;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: #4994FF;
+    }
+
+    .modal-title-group {
+        flex: 1;
+    }
+
+    .modal-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #111827;
+        margin: 0 0 0.25rem 0;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .modal-subtitle {
+        font-size: 14px;
+        color: #6b7280;
+        margin: 0;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .modal-close-btn {
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #6b7280;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+
+    .modal-close-btn:hover {
+        background: #f3f4f6;
+        color: #111827;
+    }
+
+    .feedback-form {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #4b5563;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .required-asterisk {
+        color: #ef4444;
+    }
+
+    .star-rating-wrapper {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .star-rating {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .star-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #d1d5db;
+        transition: color 0.2s ease, fill 0.2s ease;
+    }
+
+    .star-btn.filled,
+    .star-btn.hover-filled {
+        color: #fbbf24;
+    }
+
+    .star-btn:not(.filled):not(.hover-filled):hover {
+        color: #fbbf24;
+    }
+
+    .star-btn svg {
+        transition: fill 0.2s ease;
+    }
+
+    .form-input,
+    .form-textarea {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: #111827;
+        transition: all 0.2s ease;
+        background: #ffffff;
+    }
+
+    .form-input:focus,
+    .form-textarea:focus {
+        outline: none;
+        border-color: #4994FF;
+        box-shadow: 0 0 0 3px rgba(73, 148, 255, 0.1);
+    }
+
+    .form-textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .submit-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.5rem;
+        background: #4994FF;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        width: 100%;
+    }
+
+    .submit-btn:hover {
+        background: #1d4ed8;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .submit-btn:active {
+        transform: translateY(0);
+    }
+
+    .submit-icon {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    /* Confirmation Modal Styles */
+    .confirm-modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 1002;
+        animation: fadeIn 0.2s ease;
+    }
+
+    .confirm-modal-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1003;
+        padding: 1rem;
+        animation: fadeIn 0.2s ease;
+    }
+
+    .confirm-modal-content {
+        background: white;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 400px;
+        padding: 1.5rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.3s ease;
+    }
+
+    .confirm-modal-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #111827;
+        margin: 0 0 0.75rem 0;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .confirm-modal-message {
+        font-size: 14px;
+        color: #6b7280;
+        margin: 0 0 1.5rem 0;
+        line-height: 1.5;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .confirm-modal-actions {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+    }
+
+    .confirm-btn {
+        padding: 0.625rem 1.25rem;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        border: none;
+    }
+
+    .cancel-btn {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .cancel-btn:hover {
+        background: #e5e7eb;
+    }
+
+    .confirm-close-btn {
+        background: #ef4444;
+        color: white;
+    }
+
+    .confirm-close-btn:hover {
+        background: #dc2626;
+    }
+
+    @@media (max-width: 1440px) {
+        .modal-content {
+            max-width: calc(650px * (100vw / 1440px));
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .modal-container {
+            padding: 0.5rem;
+            justify-content: center;
+        }
+
+        .modal-content {
+            max-width: 100%;
+            max-height: 95vh;
+            border-radius: 12px;
+            margin-top: 0;
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-header {
+            padding: 1.25rem 1.25rem 1rem 1.25rem;
+        }
+
+        .modal-title {
+            font-size: 20px;
+        }
+
+        .modal-subtitle {
+            font-size: 13px;
+        }
+
+        .speech-bubble-icon {
+            width: 40px;
+            height: 40px;
+        }
+
+        .speech-bubble-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .feedback-form {
+            padding: 1.25rem;
+            gap: 1.25rem;
+        }
+
+        .submit-btn {
+            width: 100%;
+        }
+    }
+</style>
+
+@code {
+    [Inject]
+    private ModalStateService? ModalState { get; set; }
+
+    private bool IsOpen => ModalState?.IsModalOpen ?? false;
+
+    private int rating = 0;
+    private int hoverRating = 0;
+
+    private class FeedbackData
+    {
+        public string Name { get; set; } = "";
+        public string Feedback { get; set; } = "";
+        public string Email { get; set; } = "";
+    }
+
+    private FeedbackData feedbackData = new();
+
+    protected override void OnInitialized()
+    {
+        if (ModalState != null)
+        {
+            ModalState.OnModalStateChanged += HandleModalStateChanged;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        // Reset form when modal opens
+        if (IsOpen && rating == 0 && hoverRating == 0)
+        {
+            rating = 0;
+            hoverRating = 0;
+            feedbackData = new FeedbackData();
+        }
+    }
+
+    public void Dispose()
+    {
+        if (ModalState != null)
+        {
+            ModalState.OnModalStateChanged -= HandleModalStateChanged;
+        }
+    }
+
+    private void HandleModalStateChanged()
+    {
+        // Reset form when modal closes
+        if (!IsOpen)
+        {
+            rating = 0;
+            hoverRating = 0;
+            feedbackData = new FeedbackData();
+        }
+        InvokeAsync(StateHasChanged);
+    }
+
+    private bool showConfirmClose = false;
+
+    private void HandleBackdropClick()
+    {
+        showConfirmClose = true;
+        StateHasChanged();
+    }
+
+    private void CancelClose()
+    {
+        showConfirmClose = false;
+        StateHasChanged();
+    }
+
+    private void ConfirmClose()
+    {
+        showConfirmClose = false;
+        if (ModalState != null)
+        {
+            ModalState.IsModalOpen = false;
+        }
+        StateHasChanged();
+    }
+
+    private void CloseModal()
+    {
+        if (ModalState != null)
+        {
+            ModalState.IsModalOpen = false;
+        }
+    }
+
+    private void SetRating(int value)
+    {
+        rating = value;
+        hoverRating = 0; // Clear hover when rating is set
+        StateHasChanged();
+    }
+
+    private void SetHoverRating(int value)
+    {
+        if (hoverRating != value)
+        {
+            hoverRating = value;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private bool GetStarFill(int starIndex)
+    {
+        // When hovering, show hover state (fill stars 1 to hoverRating)
+        if (hoverRating > 0)
+        {
+            return starIndex <= hoverRating;
+        }
+        // When not hovering, show selected rating (fill stars 1 to rating)
+        if (rating > 0)
+        {
+            return starIndex <= rating;
+        }
+        // No rating selected, no hover - don't fill any stars
+        return false;
+    }
+
+    private void HandleSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(feedbackData.Feedback))
+        {
+            return;
+        }
+
+        Console.WriteLine($"Feedback submitted - Rating: {rating}, Name: {feedbackData.Name}, Email: {feedbackData.Email}, Feedback: {feedbackData.Feedback}");
+        
+        // TODO: Implement actual feedback submission logic
+        
+        // Reset form
+        feedbackData = new FeedbackData();
+        rating = 0;
+        hoverRating = 0;
+        
+        // Close modal
+        CloseModal();
+    }
+}

@@ -35,6 +35,20 @@
                         <input id="login-email" class="form-input" type="email" placeholder="example@email.com" @bind="email" />
                     </div>
 
+                    <div class="form-group phone-group">
+                        <label class="form-label" for="login-phone">Phone</label>
+                        <div class="phone-input-wrapper">
+                            <div class="phone-prefix">
+                                <img src="@GetFlagImage()" alt="@GetCountryName()" class="flag-icon" />
+                                <select class="country-code-select" @bind="countryCode" @bind:after="StateHasChanged">
+                                    <option value="+20">+20</option>
+                                    <option value="+966">+966</option>
+                                </select>
+                            </div>
+                            <input id="login-phone" class="form-input phone-input" type="tel" placeholder="123 456 789" @bind="phoneNumber" />
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <label class="form-label" for="login-password">Password</label>
                         <div class="password-wrapper">
@@ -330,6 +344,50 @@
         text-align: center;
     }
 
+    .phone-group .phone-input-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .phone-prefix {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.7rem 0.85rem;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        background: #f9fafb;
+        font-size: 13px;
+    }
+
+    .phone-prefix .flag-icon {
+        width: 20px;
+        height: 15px;
+        object-fit: cover;
+        border-radius: 2px;
+    }
+
+    .country-code-select {
+        border: none;
+        background: transparent;
+        color: #4b5563;
+        font-size: 13px;
+        font-family: inherit;
+        outline: none;
+        cursor: pointer;
+    }
+
+    .phone-input {
+        flex: 1;
+    }
+
+    .phone-prefix:focus-within {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3);
+        background: #ffffff;
+    }
+
     .auth-right {
         flex: 1.1;
         position: relative;
@@ -386,6 +444,8 @@
 
 @code {
     private string email = string.Empty;
+    private string phoneNumber = string.Empty;
+    private string countryCode = "+20";
     private string password = string.Empty;
     private bool keepMeLoggedIn;
     private bool isPasswordVisible;
@@ -397,9 +457,22 @@
         isPasswordVisible = !isPasswordVisible;
     }
 
+    private string GetFlagImage()
+    {
+        return countryCode == "+966" ? "images/KSA.webp" : "images/EgyptFlag.png";
+    }
+
+    private string GetCountryName()
+    {
+        return countryCode == "+966" ? "Saudi Arabia" : "Egypt";
+    }
+
     private void HandleSubmit()
     {
-        Console.WriteLine($"Login attempt: {email}, keepLoggedIn={keepMeLoggedIn}");
+        // Combine country code and phone number
+        string fullPhoneNumber = string.IsNullOrWhiteSpace(phoneNumber) ? string.Empty : $"{countryCode}{phoneNumber.Replace(" ", "")}";
+        
+        Console.WriteLine($"Login attempt: {email}, Phone: {fullPhoneNumber}, keepLoggedIn={keepMeLoggedIn}");
         // TODO: Implement actual authentication logic
         // For now, navigate to dashboard after login
         Navigation.NavigateTo("/dashboard/drug-checker");

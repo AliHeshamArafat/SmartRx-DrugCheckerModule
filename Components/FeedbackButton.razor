@@ -1,0 +1,117 @@
+@using SmartRx_DrugChecker.Services
+@implements IDisposable
+
+<button class="feedback-button" @onclick="OpenModal" aria-label="Share your feedback">
+    <img src="images/Message.svg" alt="Feedback" class="feedback-button-icon" />
+</button>
+
+<style>
+    .feedback-button {
+        position: fixed;
+        bottom: 25rem;
+        right: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.25rem;
+        background: #4994FF;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+        transition: all 0.3s ease;
+        z-index: 999;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .feedback-button:hover {
+        background: #1d4ed8;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.5);
+    }
+
+    .feedback-button:active {
+        transform: translateY(0);
+    }
+
+    .feedback-button svg {
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+    }
+
+    .feedback-button-icon {
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+        object-fit: contain;
+    }
+
+    .feedback-button-text {
+        white-space: nowrap;
+    }
+
+    @@media (max-width: 768px) {
+        .feedback-button {
+            bottom: 1.5rem;
+            right: 1.5rem;
+            padding: 0.75rem 1rem;
+            font-size: 13px;
+        }
+
+        .feedback-button svg,
+        .feedback-button-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .feedback-button-text {
+            display: none;
+        }
+
+        .feedback-button {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            padding: 0;
+            justify-content: center;
+        }
+    }
+</style>
+
+@code {
+    [Inject]
+    private ModalStateService? ModalState { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (ModalState != null)
+        {
+            ModalState.OnModalStateChanged += HandleModalStateChanged;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (ModalState != null)
+        {
+            ModalState.OnModalStateChanged -= HandleModalStateChanged;
+        }
+    }
+
+    private void HandleModalStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OpenModal()
+    {
+        if (ModalState != null)
+        {
+            ModalState.IsModalOpen = true;
+        }
+    }
+}

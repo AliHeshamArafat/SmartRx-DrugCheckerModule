@@ -66,8 +66,13 @@
             <div class="dashboard-content">
                 @Body
             </div>
+            <FooterSection />
         </main>
     </div>
+    
+    <!-- Feedback Components -->
+    <FeedbackButton />
+    <FeedbackModal />
 </div>
 
 <style>
@@ -99,7 +104,7 @@
     }
 
     .sidebar {
-        width: 330px;
+        width: 80px;
         background: #ffffff;
         border-right: 1px solid #e5e7eb;
         display: flex;
@@ -107,13 +112,23 @@
         position: fixed;
         height: 100vh;
         overflow-y: auto;
+        overflow-x: hidden;
         z-index: 10;
         top: 0;
         left: 0;
+        transition: width 0.3s ease;
+        --sidebar-width: 80px;
+    }
+
+    .sidebar:hover {
+        width: 330px;
+        --sidebar-width: 330px;
     }
 
     .sidebar-header {
         padding: 2rem 1.5rem;
+        white-space: nowrap;
+        overflow: hidden;
     }
 
     .user-profile {
@@ -148,6 +163,14 @@
     .user-info {
         flex: 1;
         min-width: 0;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+
+    .sidebar:hover .user-info {
+        opacity: 1;
+        pointer-events: auto;
     }
 
     .user-name {
@@ -199,6 +222,19 @@
         font-weight: 500;
         transition: all 0.2s ease;
         border-left: 3px solid transparent;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    .nav-item span {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+
+    .sidebar:hover .nav-item span {
+        opacity: 1;
+        pointer-events: auto;
     }
 
     .nav-item:hover {
@@ -235,23 +271,57 @@
         height: 1px;
         background: #e5e7eb;
         margin: 0.5rem 1.5rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .sidebar:hover .nav-separator {
+        opacity: 1;
     }
 
     .dashboard-main {
         flex: 1;
-        margin-left: 330px;
+        margin-left: 80px;
         min-height: 100vh;
         background: transparent;
         position: relative;
         z-index: 1;
         display: flex;
         flex-direction: column;
+        transition: margin-left 0.3s ease;
+    }
+
+    .sidebar:hover ~ .dashboard-main {
+        margin-left: 330px;
     }
 
     .dashboard-content {
         width: 100%;
         flex: 1;
         padding-top: 150px;
+        padding-bottom: 0;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .dashboard-main ::deep .footer-section {
+        margin-top: auto;
+        position: relative;
+        z-index: 1;
+        width: 100%;
+    }
+
+    .sidebar:hover ~ .dashboard-main ::deep .navbar-container {
+        left: 330px;
+        width: calc(100% - 330px);
+    }
+
+    @@media (max-width: 768px) {
+        .sidebar:hover ~ .dashboard-main ::deep .navbar-container {
+            left: 0;
+            width: 100%;
+        }
     }
 
     /* Responsive */
@@ -268,16 +338,34 @@
             transition: transform 0.3s ease;
         }
 
+        .sidebar:hover {
+            width: 100%;
+        }
+
         .sidebar.open {
             transform: translateX(0);
+        }
+
+        .sidebar.open .user-info,
+        .sidebar.open .nav-item span,
+        .sidebar.open .nav-separator {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         .dashboard-main {
             margin-left: 0;
         }
 
+        .sidebar:hover ~ .dashboard-main {
+            margin-left: 0;
+        }
+
         .dashboard-content {
             padding-top: 80px;
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+            overflow-x: hidden;
         }
     }
 </style>
