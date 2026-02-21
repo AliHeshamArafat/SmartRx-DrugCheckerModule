@@ -31,8 +31,21 @@
                         <input type="date" @bind="BirthDate" @bind:event="onchange" id="birthDate" class="form-input form-date" placeholder="mm/dd/yyyy" />
                     </div>
                     <div class="form-group">
-                        <label for="age">Age (auto-calculated)</label>
-                        <input type="number" value="@patientInfo.Age" id="age" class="form-input" placeholder="Age" readonly />
+                        <label>Age (auto-calculated)</label>
+                        <div class="age-input-container">
+                            <div class="age-input-part">
+                                <input type="number" value="@patientInfo.AgeYears" id="ageYears" class="form-input age-input" placeholder="Y" readonly />
+                                <span class="age-label">Years</span>
+                            </div>
+                            <div class="age-input-part">
+                                <input type="number" value="@patientInfo.AgeMonths" id="ageMonths" class="form-input age-input" placeholder="M" readonly />
+                                <span class="age-label">Months</span>
+                            </div>
+                            <div class="age-input-part">
+                                <input type="number" value="@patientInfo.AgeDays" id="ageDays" class="form-input age-input" placeholder="D" readonly />
+                                <span class="age-label">Days</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="weight">Weight (kg)</label>
@@ -264,7 +277,9 @@
     {
         public string Gender { get; set; } = "";
         public DateTime? BirthDate { get; set; }
-        public int? Age { get; set; }
+        public int? AgeYears { get; set; }
+        public int? AgeMonths { get; set; }
+        public int? AgeDays { get; set; }
         public decimal? Weight { get; set; }
     }
 
@@ -322,13 +337,45 @@
         if (patientInfo.BirthDate.HasValue)
         {
             var today = DateTime.Today;
-            var birthDate = patientInfo.BirthDate.Value;
-            patientInfo.Age = today.Year - birthDate.Year;
-            if (birthDate.Date > today.AddYears(-(int)patientInfo.Age)) patientInfo.Age--;
+            var birthDate = patientInfo.BirthDate.Value.Date;
+            
+            // Calculate years
+            var years = today.Year - birthDate.Year;
+            var months = today.Month - birthDate.Month;
+            var days = today.Day - birthDate.Day;
+            
+            // Adjust if current day is before birth day in current month
+            if (days < 0)
+            {
+                months--;
+                var lastMonth = today.AddMonths(-1);
+                days += DateTime.DaysInMonth(lastMonth.Year, lastMonth.Month);
+            }
+            
+            // Adjust if current month is before birth month
+            if (months < 0)
+            {
+                years--;
+                months += 12;
+            }
+            
+            // Adjust if current date is before birth date in current year
+            if (years < 0 || (years == 0 && (months < 0 || (months == 0 && days < 0))))
+            {
+                years = 0;
+                months = 0;
+                days = 0;
+            }
+            
+            patientInfo.AgeYears = years;
+            patientInfo.AgeMonths = months;
+            patientInfo.AgeDays = days;
         }
         else
         {
-            patientInfo.Age = null;
+            patientInfo.AgeYears = null;
+            patientInfo.AgeMonths = null;
+            patientInfo.AgeDays = null;
         }
     }
 
@@ -593,6 +640,33 @@
     .form-input[readonly] {
         background: #f5f5f5;
         cursor: not-allowed;
+    }
+
+    .age-input-container {
+        display: flex;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .age-input-part {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        min-width: 0;
+    }
+
+    .age-input {
+        padding: 0.75rem 0.5rem;
+        text-align: center;
+        width: 100%;
+    }
+
+    .age-label {
+        font-size: 0.7rem;
+        color: #999;
+        text-align: center;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
     .form-select {
@@ -907,7 +981,7 @@
         background: #FEF2F2;
         border: 1px solid #FFC9C9;
         border-radius: 10px;
-        color: #333333;
+        color: #82181A;
     }
 
     .tag-remove {
@@ -930,6 +1004,7 @@
         width: 14px;
         height: 14px;
         flex-shrink: 0;
+        color: #82181A;
     }
 
     .tag-remove:hover {

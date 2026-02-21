@@ -254,7 +254,7 @@
     <section class="pricing-cta-section">
         <h2 class="cta-title">Need help choosing the right plan?</h2>
         <p class="cta-subtitle">Our team is here to help you find the perfect solution for your practice or organization.</p>
-        <button class="cta-button">
+        <button class="cta-button" @onclick="NavigateToContact">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
@@ -854,6 +854,14 @@
         if (Navigation != null)
         {
             Navigation.NavigateTo($"/payment/{plan}");
+        }
+    }
+
+    private void NavigateToContact()
+    {
+        if (Navigation != null)
+        {
+            Navigation.NavigateTo("/contact");
         }
     }
 

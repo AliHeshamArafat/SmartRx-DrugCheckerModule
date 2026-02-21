@@ -23,7 +23,7 @@
             <div class="mobile-menu-content" @onclick:stopPropagation="true">
             <ul class="navbar-menu">
                 <li class="nav-item @(activeSection == "app" ? "active" : "")">
-                    <a href="/app" @onclick='() => SetActiveSection("app")'>App</a>
+                    <a href="/" @onclick='() => SetActiveSection("app")'>App</a>
                 </li>
                 <li class="nav-item @(activeSection == "pricing" ? "active" : "")">
                     <a href="/pricing" @onclick='() => SetActiveSection("pricing")'>Pricing</a>
@@ -734,7 +734,7 @@
             {
                 activeSection = "contact";
             }
-            else if (uri.Contains("/app") || uri == Navigation.BaseUri || uri.EndsWith("/"))
+            else if (uri.Contains("/") || uri == Navigation.BaseUri || uri.EndsWith("/"))
             {
                 activeSection = "app";
             }
