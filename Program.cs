@@ -1,12 +1,36 @@
 // Configure ContentRoot and WebRoot
-// In published apps, current directory is the publish folder
 var contentRoot = Directory.GetCurrentDirectory();
-var wwwrootPath = Path.Combine(contentRoot, "wwwroot");
+var projectRoot = contentRoot;
+
+// If running from bin directory (Debug/Release), find the project root
+if (contentRoot.Contains(Path.Combine("bin", "Debug")) || 
+    contentRoot.Contains(Path.Combine("bin", "Release")) ||
+    contentRoot.Contains("bin/Debug") || 
+    contentRoot.Contains("bin/Release"))
+{
+    var currentDir = new DirectoryInfo(contentRoot);
+    while (currentDir != null && !currentDir.GetFiles("*.csproj").Any())
+    {
+        currentDir = currentDir.Parent;
+    }
+    if (currentDir != null)
+    {
+        projectRoot = currentDir.FullName;
+    }
+}
+
+// Check for wwwroot in project root first, then in current directory
+var wwwrootPath = Path.Combine(projectRoot, "wwwroot");
+if (!Directory.Exists(wwwrootPath))
+{
+    // Fallback: check in current directory (for published apps)
+    wwwrootPath = Path.Combine(contentRoot, "wwwroot");
+}
 
 // Create builder with WebApplicationOptions
 var options = new WebApplicationOptions
 {
-    ContentRootPath = contentRoot,
+    ContentRootPath = projectRoot,
     WebRootPath = Directory.Exists(wwwrootPath) ? wwwrootPath : null
 };
 
