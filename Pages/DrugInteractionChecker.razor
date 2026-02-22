@@ -1381,7 +1381,7 @@
         max-width: 1440px;
         margin: 0 auto;
         display: grid;
-        grid-template-columns: 1fr 300px;
+        grid-template-columns: 1fr 400px;
         gap: 2rem;
         align-items: start;
         position: relative;
@@ -1411,7 +1411,7 @@
         }
 
         .ads-container {
-            min-height: 280px;
+            min-height: 320px;
         }
 
         .ads-carousel-wrapper {
@@ -1695,13 +1695,13 @@
     }
 
     .weight-input-with-icon {
-        padding-right: 3rem;
+        padding-right: 3.5rem;
         width: 100%;
     }
 
     .weight-calculator-button {
         position: absolute;
-        right: 0.75rem;
+        right: 2.5rem;
         top: 50%;
         transform: translateY(-50%);
         background: transparent;
@@ -2228,14 +2228,14 @@
         font-size: 1.1rem;
         font-weight: 600;
         color: #333333;
-        margin: 0 0 1rem 0;
+        margin: 0 0 0.75rem 0;
         font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
     .summary-items {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        gap: 0.75rem;
     }
 
     .summary-item {
@@ -2247,7 +2247,7 @@
     .summary-item-vertical {
         flex-direction: column;
         align-items: flex-start;
-        gap: 0.5rem;
+        gap: 0.75rem;
     }
 
     @@media (min-width: 1440px) {
@@ -2313,7 +2313,7 @@
     .summary-separator {
         height: 1px;
         background: #E5E7EB;
-        margin: 0.5rem 0;
+        margin: 0.75rem 0;
     }
 
     .summary-label {
@@ -2352,7 +2352,7 @@
         padding: 1rem;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         border: 1px solid rgba(0, 0, 0, 0.08);
-        min-height: 300px;
+        min-height: 400px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -2497,6 +2497,19 @@
         .form-input {
             padding: 0.625rem 0.75rem;
             font-size: 0.875rem;
+        }
+
+        .weight-input-with-icon {
+            padding-right: 3rem;
+        }
+
+        .weight-calculator-button {
+            right: 2rem;
+        }
+
+        .weight-calculator-icon {
+            width: 16px;
+            height: 16px;
         }
 
         .search-container {

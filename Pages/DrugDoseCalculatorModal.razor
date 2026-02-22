@@ -1,5 +1,3 @@
-@using SmartRx_DrugChecker.Services
-
 @if (IsOpen)
 {
     <div class="calculator-modal-backdrop" @onclick="HandleBackdropClick">
@@ -43,14 +41,14 @@
                     </div>
                 </div>
 
-                <!-- Standard dosing section -->
+                <!-- Standard/Weight-Based dosing section -->
                 <div class="drug-section-card">
                     <div class="drug-section-header primary">
                         <div class="drug-section-header-left">
                                 <img src="images/Capsule.png" alt="Capsule" class="capsule-icon" />
                             <div>
-                                <div class="drug-section-title">Standard Dosing</div>
-                                <div class="drug-section-subtitle">Based on typical adult dosing</div>
+                                <div class="drug-section-title">@(IsWeightBasedDosing ? "Weight-Based Dosing" : "Standard Dosing")</div>
+                                <div class="drug-section-subtitle">@(IsWeightBasedDosing ? "" : "Based on typical adult dosing")</div>
                             </div>
                         </div>
                     </div>
@@ -98,17 +96,23 @@
                     </div>
 
                     <div class="drug-dose-table">
-                        <div class="drug-dose-table-header">
+                        <div class="drug-dose-table-header @(IsWeightBasedDosing ? "weight-based" : "")">
+                            <div>Indication</div>
                             <div>Dose</div>
                             <div>Calculated Dose</div>
                             <div>Frequency</div>
                             <div>Max Daily</div>
+                            @if (IsWeightBasedDosing)
+                            {
+                                <div>Max Daily</div>
+                            }
+                            <div></div>
                         </div>
                         @if (DrugDetails != null && DrugDetails.Doses.Any())
                         {
                             @foreach (var (dose, index) in DrugDetails.Doses.Select((d, i) => (d, i)))
                             {
-                                <div class="drug-dose-row @(index > 0 ? "muted" : "")">
+                                <div class="drug-dose-row @(index > 0 ? "muted" : "") @(IsWeightBasedDosing ? "weight-based" : "")">
                                     <div>
                                         <div class="drug-dose-row-title">@dose.Indication</div>
                                         @if (!string.IsNullOrWhiteSpace(dose.IndicationSubtitle))
@@ -117,8 +121,13 @@
                                         }
                                     </div>
                                     <div class="drug-dose-cell">@dose.Dose</div>
+                                    <div class="drug-dose-cell">@(!string.IsNullOrWhiteSpace(dose.CalculatedDose) ? dose.CalculatedDose : dose.Dose)</div>
                                     <div class="drug-dose-cell">@dose.Frequency</div>
                                     <div class="drug-dose-cell">@dose.MaxDaily</div>
+                                    @if (IsWeightBasedDosing)
+                                    {
+                                        <div class="drug-dose-cell">@dose.MaxDaily</div>
+                                    }
                                     <button type="button" class="drug-dose-expand">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                                              xmlns="http://www.w3.org/2000/svg">
@@ -131,14 +140,19 @@
                         }
                         else
                         {
-                            <div class="drug-dose-row">
+                            <div class="drug-dose-row @(IsWeightBasedDosing ? "weight-based" : "")">
                                 <div>
                                     <div class="drug-dose-row-title">Severe Infections of the Respiratory Tract</div>
                                     <div class="drug-dose-row-subtitle">e.g. Pneumonia, Sinusitis</div>
                                 </div>
-                                <div class="drug-dose-cell">1000 mg</div>
+                                <div class="drug-dose-cell">@(IsWeightBasedDosing ? "20 mg/kg" : "1000 mg")</div>
+                                <div class="drug-dose-cell">@(IsWeightBasedDosing ? "1400 mg" : "1000 mg")</div>
                                 <div class="drug-dose-cell">Every 12 hours</div>
-                                <div class="drug-dose-cell">2000 mg</div>
+                                <div class="drug-dose-cell">@(IsWeightBasedDosing ? "2800 mg" : "2000 mg")</div>
+                                @if (IsWeightBasedDosing)
+                                {
+                                    <div class="drug-dose-cell">2800 mg</div>
+                                }
                                 <button type="button" class="drug-dose-expand">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                                          xmlns="http://www.w3.org/2000/svg">
@@ -149,6 +163,16 @@
                             </div>
                         }
                     </div>
+
+                    @if (IsWeightBasedDosing && DrugDetails?.WeightAlert != null && !string.IsNullOrWhiteSpace(DrugDetails.WeightAlert.Message))
+                    {
+                        <div class="drug-weight-alert">
+                            <div class="drug-weight-alert-icon">
+                                <img src="images/WarningYellow.png" alt="Warning" class="warning-icon-small" />
+                            </div>
+                            <div class="drug-weight-alert-text">@DrugDetails.WeightAlert.Message</div>
+                        </div>
+                    }
                 </div>
 
                 <!-- Special population adjustments -->
@@ -332,7 +356,7 @@
     public EventCallback OnClose { get; set; }
 
     [Inject]
-    private ModalStateService? ModalState { get; set; }
+    private IJSRuntime? JS { get; set; }
 
     // Data models for drug calculator
     public class DrugCalculatorDetails
@@ -341,10 +365,12 @@
         public string Form { get; set; } = "";
         public string Frequency { get; set; } = "";
         public string DoseForm { get; set; } = "";
+        public bool IsWeightBased { get; set; } = false;
         public List<string> Indications { get; set; } = new();
         public List<DoseInfo> Doses { get; set; } = new();
         public List<PopulationAdjustment> PopulationAdjustments { get; set; } = new();
         public List<string> AdministrationInstructions { get; set; } = new();
+        public WeightAlert? WeightAlert { get; set; }
     }
 
     public class DoseInfo
@@ -352,8 +378,14 @@
         public string Indication { get; set; } = "";
         public string IndicationSubtitle { get; set; } = "";
         public string Dose { get; set; } = "";
+        public string CalculatedDose { get; set; } = "";
         public string Frequency { get; set; } = "";
         public string MaxDaily { get; set; } = "";
+    }
+
+    public class WeightAlert
+    {
+        public string Message { get; set; } = "";
     }
 
     public class PopulationAdjustment
@@ -374,13 +406,26 @@
         public List<string> Notes { get; set; } = new();
     }
 
-    protected override void OnParametersSet()
+    private bool IsWeightBasedDosing => DrugDetails?.IsWeightBased == true || 
+                                       (!string.IsNullOrWhiteSpace(DrugDetails?.DoseForm) && 
+                                        DrugDetails.DoseForm.Contains("mg/ml", StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (ModalState != null)
+        if (JS != null)
         {
-            ModalState.IsModalOpen = IsOpen;
+            if (IsOpen)
+            {
+                // Add class to body to indicate calculator modal is open
+                await JS.InvokeVoidAsync("eval", "document.body.classList.add('calculator-modal-open');");
+            }
+            else
+            {
+                // Remove class from body when modal closes
+                await JS.InvokeVoidAsync("eval", "document.body.classList.remove('calculator-modal-open');");
+            }
         }
-        base.OnParametersSet();
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     private async Task HandleBackdropClick()
@@ -405,7 +450,7 @@
         display: flex;
         align-items: stretch;
         justify-content: center;
-        z-index: 9999 !important;
+        z-index: 10000 !important;
         overflow: hidden;
         margin: 0 !important;
         padding: 0 !important;
@@ -422,6 +467,8 @@
         max-height: calc(100vh - 5.5rem);
         margin: 4.5rem auto 1.5rem;
         overflow-y: auto;
+        position: relative;
+        z-index: 10001;
     }
 
     .calculator-modal-header {
@@ -681,11 +728,15 @@
 
     .drug-dose-table-header {
         display: grid;
-        grid-template-columns: 2.3fr 1fr 1fr 1fr;
+        grid-template-columns: 2.3fr 1fr 1fr 1fr auto;
         background: linear-gradient(to right, rgba(239, 246, 255, 1), rgba(73, 148, 255, 0.1));
         padding: 0.55rem 0.9rem;
         color: #6B7280;
         font-weight: 500;
+    }
+
+    .drug-dose-table-header.weight-based {
+        grid-template-columns: 2.3fr 1fr 1fr 1fr 1fr auto;
     }
 
     .drug-dose-row {
@@ -695,6 +746,10 @@
         padding: 0.65rem 0.9rem;
         border-top: 1px solid #E5E7EB;
         background: transparent;
+    }
+
+    .drug-dose-row.weight-based {
+        grid-template-columns: 2.3fr 1fr 1fr 1fr 1fr auto;
     }
 
     .drug-dose-row.muted {
@@ -913,6 +968,32 @@
         color: #6B7280;
     }
 
+    .drug-weight-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        background: #FFFBEB;
+        border: 1px solid #FEF3C7;
+    }
+
+    .drug-weight-alert-icon {
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .drug-weight-alert-text {
+        font-size: 0.85rem;
+        color: #92400E;
+        line-height: 1.5;
+    }
+
     .dot {
         width: 9px;
         height: 9px;
@@ -1091,6 +1172,27 @@
             grid-template-rows: auto auto auto;
             row-gap: 0.25rem;
             padding: 0.5rem 0.75rem;
+        }
+
+        .drug-dose-row.weight-based,
+        .drug-dose-row.weight-based.muted {
+            grid-template-columns: 1.8fr 1fr;
+            grid-template-rows: auto auto auto auto;
+        }
+
+        .drug-weight-alert {
+            padding: 0.625rem 0.75rem;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .drug-weight-alert-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .drug-weight-alert-text {
+            font-size: 0.75rem;
         }
 
         .drug-dose-row-title {

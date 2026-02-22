@@ -2,6 +2,7 @@
 @implements IDisposable
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject HttpClient? Http
 
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -64,7 +65,12 @@
                     </div>
                     <div class="form-group">
                         <label for="weight">Weight (kg)</label>
-                        <input type="number" @bind="patientInfo.Weight" @bind:event="onchange" id="weight" class="form-input" placeholder="Enter Weight" step="0.1" />
+                        <div class="weight-input-container">
+                            <input type="number" @bind="patientInfo.Weight" @bind:event="onchange" id="weight" class="form-input weight-input-with-icon" placeholder="Enter Weight" step="0.1" />
+                            <button type="button" class="weight-calculator-button" @onclick="CalculateWeightAsync" title="Calculate Weight">
+                                <img src="images/Calculator.png" alt="Calculate Weight" class="weight-calculator-icon" />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -509,6 +515,49 @@
         }
     }
 
+    private async Task CalculateWeightAsync()
+    {
+        if (!patientInfo.AgeYears.HasValue && !patientInfo.AgeMonths.HasValue && !patientInfo.AgeDays.HasValue)
+        {
+            // TODO: Show validation message - age is required for weight calculation
+            return;
+        }
+
+        try
+        {
+            // TODO: Replace with actual API endpoint
+            // Example: 
+            // var ageInDays = (patientInfo.AgeYears ?? 0) * 365 + (patientInfo.AgeMonths ?? 0) * 30 + (patientInfo.AgeDays ?? 0);
+            // var response = await Http.GetFromJsonAsync<WeightCalculationResult>($"/api/weight/calculate?ageDays={ageInDays}&gender={Uri.EscapeDataString(patientInfo.Gender)}");
+            // if (response != null && response.Weight.HasValue)
+            // {
+            //     patientInfo.Weight = response.Weight;
+            //     StateHasChanged();
+            // }
+
+            // Fallback to mock calculation for now
+            await Task.Delay(300); // Simulate API delay
+            
+            // Simple mock calculation based on age (this is just an example)
+            var ageInMonths = (patientInfo.AgeYears ?? 0) * 12 + (patientInfo.AgeMonths ?? 0);
+            if (ageInMonths > 0)
+            {
+                // Mock formula: approximate weight calculation (this should be replaced with actual API)
+                var estimatedWeight = ageInMonths < 12 
+                    ? ageInMonths * 0.5m // For infants: ~0.5 kg per month
+                    : 10m + (ageInMonths - 12) * 0.3m; // For children: base 10kg + 0.3kg per month after 1 year
+                
+                patientInfo.Weight = Math.Round(estimatedWeight, 1);
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            // TODO: Add proper error handling/logging and user notification
+            Console.WriteLine($"Error calculating weight: {ex.Message}");
+        }
+    }
+
     private void SearchDrug()
     {
         if (string.IsNullOrWhiteSpace(drugSearchQuery))
@@ -785,7 +834,7 @@
         max-width: 1440px;
         margin: 0 auto;
         display: grid;
-        grid-template-columns: 1fr 300px;
+        grid-template-columns: 1fr 400px;
         gap: 2rem;
         align-items: start;
         position: relative;
@@ -815,7 +864,7 @@
         }
 
         .ads-container {
-            min-height: 280px;
+            min-height: 320px;
         }
 
         .ads-carousel-wrapper {
@@ -984,6 +1033,55 @@
     .form-date::-webkit-calendar-picker-indicator {
         cursor: pointer;
         opacity: 1;
+    }
+
+    .weight-input-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .weight-input-with-icon {
+        padding-right: 3.5rem;
+        width: 100%;
+    }
+
+    .weight-calculator-button {
+        position: absolute;
+        right: 2.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        z-index: 1;
+    }
+
+    .weight-calculator-button:hover {
+        opacity: 0.7;
+        transform: translateY(-50%) scale(1.1);
+    }
+
+    .weight-calculator-button:active {
+        transform: translateY(-50%) scale(0.95);
+    }
+
+    .weight-calculator-icon {
+        width: 18px;
+        height: 18px;
+        object-fit: contain;
+    }
+
+    @@media (min-width: 1440px) {
+        .weight-calculator-icon {
+            width: 20px;
+            height: 20px;
+        }
     }
 
     .search-container {
@@ -1473,7 +1571,7 @@
         padding: 1rem;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         border: 1px solid rgba(0, 0, 0, 0.08);
-        min-height: 300px;
+        min-height: 400px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -1637,6 +1735,19 @@
             font-size: 0.65rem;
         }
 
+        .weight-input-with-icon {
+            padding-right: 3rem;
+        }
+
+        .weight-calculator-button {
+            right: 2rem;
+        }
+
+        .weight-calculator-icon {
+            width: 16px;
+            height: 16px;
+        }
+
         .search-container {
             margin-bottom: 0.75rem;
         }
@@ -1775,7 +1886,7 @@
 
         .ads-container {
             padding: 0.75rem;
-            min-height: 150px;
+            min-height: 240px;
         }
     }
 </style>
