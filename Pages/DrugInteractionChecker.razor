@@ -133,25 +133,30 @@
                         <input type="date" @bind="BirthDate" @bind:event="onchange" id="birthDate" class="form-input form-date" placeholder="mm/dd/yyyy" />
                     </div>
                     <div class="form-group">
-                        <label>Age (auto-calculated)</label>
+                        <label>Age</label>
                         <div class="age-input-container">
                             <div class="age-input-part">
-                                <input type="number" value="@patientInfo.AgeYears" id="ageYears" class="form-input age-input" placeholder="Y" readonly />
+                                <input type="number" @bind="AgeYears" @bind:event="onchange" id="ageYears" class="form-input age-input" placeholder="Y" />
                                 <span class="age-label">Years</span>
                             </div>
                             <div class="age-input-part">
-                                <input type="number" value="@patientInfo.AgeMonths" id="ageMonths" class="form-input age-input" placeholder="M" readonly />
+                                <input type="number" @bind="AgeMonths" @bind:event="onchange" id="ageMonths" class="form-input age-input" placeholder="M" />
                                 <span class="age-label">Months</span>
                             </div>
                             <div class="age-input-part">
-                                <input type="number" value="@patientInfo.AgeDays" id="ageDays" class="form-input age-input" placeholder="D" readonly />
+                                <input type="number" @bind="AgeDays" @bind:event="onchange" id="ageDays" class="form-input age-input" placeholder="D" />
                                 <span class="age-label">Days</span>
                             </div>
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="weight">Weight (kg)</label>
-                        <input type="number" @bind="patientInfo.Weight" @bind:event="onchange" id="weight" class="form-input" placeholder="Enter Weight" step="0.1" />
+                        <div class="weight-input-container">
+                            <input type="number" @bind="patientInfo.Weight" @bind:event="onchange" id="weight" class="form-input weight-input-with-icon" placeholder="Enter Weight" step="0.1" />
+                            <button type="button" class="weight-calculator-button" @onclick="CalculateWeightAsync" title="Calculate Weight">
+                                <img src="images/Calculator.png" alt="Calculate Weight" class="weight-calculator-icon" />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1683,6 +1688,55 @@
         font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
+    .weight-input-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .weight-input-with-icon {
+        padding-right: 3rem;
+        width: 100%;
+    }
+
+    .weight-calculator-button {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        z-index: 1;
+    }
+
+    .weight-calculator-button:hover {
+        opacity: 0.7;
+        transform: translateY(-50%) scale(1.1);
+    }
+
+    .weight-calculator-button:active {
+        transform: translateY(-50%) scale(0.95);
+    }
+
+    .weight-calculator-icon {
+        width: 18px;
+        height: 18px;
+        object-fit: contain;
+    }
+
+    @@media (min-width: 1440px) {
+        .weight-calculator-icon {
+            width: 20px;
+            height: 20px;
+        }
+    }
+
     .search-container {
         display: flex;
         gap: 0.5rem;
@@ -2543,6 +2597,7 @@
     private string allergySearchQuery = "";
     private bool isSearchingDrugs = false;
     private bool isCheckingSafety = false;
+    private bool isUpdatingFromAge = false; // Flag to prevent circular updates
 
     // Plan and Tokens (TODO: Replace with actual data from API/service)
     private string CurrentPlan { get; set; } = "Individual";
@@ -2575,7 +2630,41 @@
         set
         {
             patientInfo.BirthDate = value;
-            CalculateAge();
+            // Only calculate age if not updating from age fields (to prevent circular updates)
+            if (!isUpdatingFromAge)
+            {
+                CalculateAge();
+            }
+        }
+    }
+
+    private int? AgeYears
+    {
+        get => patientInfo.AgeYears;
+        set
+        {
+            patientInfo.AgeYears = value;
+            CalculateBirthDateFromAge();
+        }
+    }
+
+    private int? AgeMonths
+    {
+        get => patientInfo.AgeMonths;
+        set
+        {
+            patientInfo.AgeMonths = value;
+            CalculateBirthDateFromAge();
+        }
+    }
+
+    private int? AgeDays
+    {
+        get => patientInfo.AgeDays;
+        set
+        {
+            patientInfo.AgeDays = value;
+            CalculateBirthDateFromAge();
         }
     }
 
@@ -2623,6 +2712,102 @@
             patientInfo.AgeYears = null;
             patientInfo.AgeMonths = null;
             patientInfo.AgeDays = null;
+        }
+    }
+
+    private void CalculateBirthDateFromAge()
+    {
+        if (patientInfo.AgeYears.HasValue || patientInfo.AgeMonths.HasValue || patientInfo.AgeDays.HasValue)
+        {
+            var today = DateTime.Today;
+            var years = patientInfo.AgeYears ?? 0;
+            var months = patientInfo.AgeMonths ?? 0;
+            var days = patientInfo.AgeDays ?? 0;
+
+            // Calculate birth date by subtracting age from today
+            var calculatedBirthDate = today
+                .AddYears(-years)
+                .AddMonths(-months)
+                .AddDays(-days);
+
+            // Set flag to prevent circular update
+            isUpdatingFromAge = true;
+            
+            try
+            {
+                // Ensure the calculated date is not in the future
+                if (calculatedBirthDate <= today)
+                {
+                    patientInfo.BirthDate = calculatedBirthDate;
+                }
+                else
+                {
+                    // If calculation results in future date, set to today (age is 0)
+                    patientInfo.BirthDate = today;
+                    patientInfo.AgeYears = 0;
+                    patientInfo.AgeMonths = 0;
+                    patientInfo.AgeDays = 0;
+                }
+            }
+            finally
+            {
+                isUpdatingFromAge = false;
+            }
+        }
+        else
+        {
+            isUpdatingFromAge = true;
+            try
+            {
+                patientInfo.BirthDate = null;
+            }
+            finally
+            {
+                isUpdatingFromAge = false;
+            }
+        }
+    }
+
+    private async Task CalculateWeightAsync()
+    {
+        if (!patientInfo.AgeYears.HasValue && !patientInfo.AgeMonths.HasValue && !patientInfo.AgeDays.HasValue)
+        {
+            // TODO: Show validation message - age is required for weight calculation
+            return;
+        }
+
+        try
+        {
+            // TODO: Replace with actual API endpoint
+            // Example: 
+            // var ageInDays = (patientInfo.AgeYears ?? 0) * 365 + (patientInfo.AgeMonths ?? 0) * 30 + (patientInfo.AgeDays ?? 0);
+            // var response = await Http.GetFromJsonAsync<WeightCalculationResult>($"/api/weight/calculate?ageDays={ageInDays}&gender={Uri.EscapeDataString(patientInfo.Gender)}");
+            // if (response != null && response.Weight.HasValue)
+            // {
+            //     patientInfo.Weight = response.Weight;
+            //     StateHasChanged();
+            // }
+
+            // Fallback to mock calculation for now
+            await Task.Delay(300); // Simulate API delay
+            
+            // Simple mock calculation based on age (this is just an example)
+            var ageInMonths = (patientInfo.AgeYears ?? 0) * 12 + (patientInfo.AgeMonths ?? 0);
+            if (ageInMonths > 0)
+            {
+                // Mock formula: approximate weight calculation (this should be replaced with actual API)
+                var estimatedWeight = ageInMonths < 12 
+                    ? ageInMonths * 0.5m // For infants: ~0.5 kg per month
+                    : 10m + (ageInMonths - 12) * 0.3m; // For children: base 10kg + 0.3kg per month after 1 year
+                
+                patientInfo.Weight = Math.Round(estimatedWeight, 1);
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            // TODO: Add proper error handling/logging and user notification
+            Console.WriteLine($"Error calculating weight: {ex.Message}");
         }
     }
 

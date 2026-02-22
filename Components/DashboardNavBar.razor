@@ -73,13 +73,13 @@
                         </button>
 
                         <!-- Control Panel -->
-                        <a href="@UserService.GetControlPanelRoute()" class="user-menu-item" @onclick="CloseUserMenu">
+                        <a href="/dashboard/settings" class="user-menu-item" @onclick="CloseUserMenu">
                             <img src="images/ControlPanel.svg" alt="Control Panel" class="menu-item-icon" />
                             <span>Control panel</span>
                         </a>
 
                         <!-- View Profile -->
-                        <a href="/dashboard/settings" class="user-menu-item" @onclick="CloseUserMenu">
+                        <a href="@UserService.GetControlPanelRoute()" class="user-menu-item" @onclick="CloseUserMenu">
                             <img src="images/Profile.svg" alt="View Profile" class="menu-item-icon" />
                             <span>View Profile</span>
                         </a>

@@ -70,6 +70,23 @@
                             }
                         </div>
 
+                        <div class="form-group">
+                            <label class="form-label" for="signup-confirm-password">Confirm Password</label>
+                            <div class="@($"password-wrapper {GetConfirmPasswordWrapperValidationClass()}")">
+                                <InputText id="signup-confirm-password"
+                                           class="form-input"
+                                           type="@confirmPasswordInputType"
+                                           @bind-Value="registration.ConfirmPassword" />
+                                <button type="button" class="password-toggle" @onclick="ToggleConfirmPasswordVisibility" aria-label="Toggle confirm password visibility">
+                                    <img src="images/@(isConfirmPasswordVisible ? "eye-off.png" : "eye-on.png")" alt="@(isConfirmPasswordVisible ? "Hide password" : "Show password")" class="eye-icon" />
+                                </button>
+                            </div>
+                            @if (formSubmitted)
+                            {
+                                <ValidationMessage For="@(() => registration.ConfirmPassword)" class="validation-message" />
+                            }
+                        </div>
+
                         <div class="form-group phone-group">
                             <label class="form-label" for="signup-phone">Phone</label>
                             <div class="phone-input-wrapper">
@@ -496,10 +513,12 @@
 @code {
     private RegistrationModel registration = new();
     private bool isPasswordVisible;
+    private bool isConfirmPasswordVisible;
     private EditContext? editContext;
     private bool formSubmitted = false;
 
     private string passwordInputType => isPasswordVisible ? "text" : "password";
+    private string confirmPasswordInputType => isConfirmPasswordVisible ? "text" : "password";
 
     protected override void OnInitialized()
     {
@@ -510,6 +529,11 @@
     private void TogglePasswordVisibility()
     {
         isPasswordVisible = !isPasswordVisible;
+    }
+
+    private void ToggleConfirmPasswordVisibility()
+    {
+        isConfirmPasswordVisible = !isConfirmPasswordVisible;
     }
 
     private string GetValidationClass<T>(System.Linq.Expressions.Expression<Func<T>> expression)
@@ -535,6 +559,22 @@
         if (editContext != null)
         {
             var fieldIdentifier = FieldIdentifier.Create(() => registration.Password);
+            editContext.Validate();
+            if (editContext.GetValidationMessages(fieldIdentifier).Any())
+            {
+                return "invalid";
+            }
+        }
+        return "";
+    }
+
+    private string GetConfirmPasswordWrapperValidationClass()
+    {
+        if (!formSubmitted) return "";
+        
+        if (editContext != null)
+        {
+            var fieldIdentifier = FieldIdentifier.Create(() => registration.ConfirmPassword);
             editContext.Validate();
             if (editContext.GetValidationMessages(fieldIdentifier).Any())
             {
@@ -594,6 +634,9 @@
 
         [Required, MinLength(6)]
         public string Password { get; set; } = string.Empty;
+
+        [Required, Compare(nameof(Password), ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
 
         public string CountryCode { get; set; } = "+20";
 
