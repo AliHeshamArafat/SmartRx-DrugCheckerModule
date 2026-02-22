@@ -1376,6 +1376,48 @@
     }
 
     /* Responsive */
+    @@media (min-width: 1280px) and (max-width: 1366px) {
+        .results-page {
+            padding: 0 0 2rem;
+        }
+
+        .results-navbar-container,
+        .results-container {
+            padding: 0 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .risk-summary-cards {
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .risk-card {
+            padding: 1.25rem;
+        }
+
+        .risk-card-number {
+            font-size: 2rem;
+        }
+
+        .risk-card-label {
+            font-size: 0.9rem;
+        }
+
+        .overall-risk-card {
+            padding: 1.25rem;
+        }
+
+        .risk-section {
+            padding: 1.25rem;
+        }
+
+        .risk-section-title {
+            font-size: 1.15rem;
+        }
+    }
+
     @@media (max-width: 1440px) {
         .results-navbar-container,
         .results-container {
@@ -1414,64 +1456,204 @@
     }
 
     @@media (max-width: 768px) {
+        .results-page {
+            padding: 0.5rem 0 1.5rem;
+            min-height: auto;
+        }
+
+        .results-container {
+            padding: 0 0.75rem;
+        }
+
         .results-navbar {
             height: auto;
-            min-height: 80px;
+            min-height: auto;
+            margin-bottom: 1rem;
         }
 
-        .results-page {
-            padding-top: 120px;
-        }
-
-        .risk-summary-cards {
-            grid-template-columns: 1fr;
-        }
-
-        .risk-card {
-            padding: 1rem;
+        .results-navbar-container {
+            padding: 0.75rem 1rem;
             gap: 0.75rem;
+            flex-direction: column;
+            align-items: stretch;
         }
 
-        .risk-card-number {
-            font-size: 1.5rem;
+        .nav-back-button {
+            font-size: 0.875rem;
+            padding: 0.5rem;
         }
 
-        .risk-card-label {
-            font-size: 0.8rem;
-        }
-
-        .risk-card-icon {
-            width: 32px;
-            height: 32px;
-        }
-
-        .risk-card-icon svg,
-        .risk-card-icon img {
-            width: 16px;
-            height: 16px;
+        .nav-back-button svg {
+            width: 18px;
+            height: 18px;
         }
 
         .nav-actions {
             flex-direction: column;
             gap: 0.5rem;
+            width: 100%;
         }
 
         .nav-action-button {
             width: 100%;
+            padding: 0.625rem 1rem;
+            font-size: 0.875rem;
             justify-content: center;
         }
 
-        .results-navbar-container,
-        .results-container {
-            padding: 0 1.5rem;
+        .nav-action-button svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .risk-summary-cards {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .risk-card {
+            padding: 0.75rem;
+            gap: 0.5rem;
+        }
+
+        .risk-card-icon {
+            width: 28px;
+            height: 28px;
+        }
+
+        .risk-card-icon svg,
+        .risk-card-icon img {
+            width: 14px;
+            height: 14px;
+        }
+
+        .risk-card-number {
+            font-size: 1.25rem;
+        }
+
+        .risk-card-label {
+            font-size: 0.7rem;
+        }
+
+        .overall-risk-card {
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .overall-risk-title {
+            font-size: 0.875rem;
+        }
+
+        .overall-risk-level {
+            font-size: 1.5rem;
+        }
+
+        .overall-risk-count {
+            font-size: 0.75rem;
+        }
+
+        .risk-section {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+        }
+
+        .risk-section-header {
+            margin-bottom: 0.75rem;
+            gap: 0.5rem;
+        }
+
+        .risk-section-icon {
+            width: 32px;
+            height: 32px;
+        }
+
+        .risk-section-icon svg,
+        .risk-section-icon img {
+            width: 16px;
+            height: 16px;
+        }
+
+        .risk-section-title {
+            font-size: 1rem;
+        }
+
+        .risk-section-content {
+            gap: 0.75rem;
         }
 
         .drug-pair {
             flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .drug-item {
+            padding: 0.75rem;
+        }
+
+        .drug-name {
+            font-size: 0.875rem;
+        }
+
+        .drug-generic {
+            font-size: 0.75rem;
         }
 
         .drug-separator {
             transform: rotate(90deg);
+            width: 24px;
+            height: 24px;
+        }
+
+        .drug-separator img {
+            width: 14px;
+            height: 14px;
+        }
+
+        .ingredient-conflict,
+        .interaction-item,
+        .pregnancy-risk-item {
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .recommendations-section {
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .recommendations-header {
+            margin-bottom: 0.75rem;
+            gap: 0.5rem;
+        }
+
+        .recommendations-icon {
+            width: 28px;
+            height: 28px;
+        }
+
+        .recommendations-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .recommendations-title {
+            font-size: 1rem;
+        }
+
+        .recommendations-list {
+            gap: 0.75rem;
+        }
+
+        .recommendation-item {
+            padding: 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .recommendation-number {
+            font-size: 0.875rem;
         }
     }
 </style>

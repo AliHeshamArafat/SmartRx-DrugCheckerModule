@@ -1,0 +1,535 @@
+@using SmartRx_DrugChecker.Services
+@using SmartRx_DrugChecker.Models
+@implements IDisposable
+@inject IJSRuntime JSRuntime
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<div class="modal-backdrop" @onclick="HandleClose">
+    <div class="profile-view-modal" @onclick:stopPropagation="true">
+        <div class="modal-header-section">
+            <div class="profile-header-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 7H4C2.89543 7 2 7.89543 2 9V19C2 20.1046 2.89543 21 4 21H20C21.1046 21 22 20.1046 22 19V9C22 7.89543 21.1046 7 20 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 21V13C16 11.8954 15.1046 11 14 11H10C8.89543 11 8 11.8954 8 13V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 7C13.6569 7 15 5.65685 15 4C15 2.34315 13.6569 1 12 1C10.3431 1 9 2.34315 9 4C9 5.65685 10.3431 7 12 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="profile-header-info">
+                <div class="profile-header-title-prefix">@Profile.Title</div>
+                <div class="profile-header-specialty">@Profile.Specialty</div>
+                <div class="profile-header-qualification">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>@Profile.Qualification</span>
+                </div>
+            </div>
+            <button type="button" class="modal-close-btn" @onclick="HandleClose">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="modal-content-section">
+            <!-- Organization & Location -->
+            <div class="content-section">
+                <div class="section-header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="section-icon">
+                        <path d="M3 21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M5 21V7L13 2L21 7V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M9 9V21M15 9V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <h3 class="section-title">Organization & Location</h3>
+                </div>
+                <div class="section-content">
+                    <div class="organization-name">@Profile.Organization</div>
+                    <div class="location-info">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="location-pin-icon">
+                            <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>@Profile.Location</span>
+                    </div>
+                    <a href="@Profile.MapUrl" target="_blank" class="view-map-link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="map-link-icon">
+                            <path d="M1 6V22L8 18L16 22L23 18V2L16 6L8 2L1 6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8 2V18M16 6V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>View Location on Map</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- About -->
+            <div class="content-section">
+                <div class="section-header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="section-icon">
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <h3 class="section-title">About</h3>
+                </div>
+                <div class="section-content">
+                    <p class="about-text">@Profile.About</p>
+                </div>
+            </div>
+
+            <!-- Professional Details -->
+            <div class="content-section">
+                <div class="section-header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="section-icon">
+                        <path d="M22 10V6C22 4.89543 21.1046 4 20 4H4C2.89543 4 2 4.89543 2 6V10M22 10V18C22 19.1046 21.1046 20 20 20H4C2.89543 20 2 19.1046 2 18V10M22 10H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M6 4V20M18 4V20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <h3 class="section-title">Professional Details</h3>
+                </div>
+                <div class="professional-details-grid">
+                    <div class="detail-card title-card">
+                        <div class="detail-label title-label">Title</div>
+                        <div class="detail-value">@Profile.Title</div>
+                    </div>
+                    <div class="detail-card specialty-card">
+                        <div class="detail-label specialty-label">Specialty</div>
+                        <div class="detail-value">@Profile.Specialty</div>
+                    </div>
+                    <div class="detail-card qualification-card full-width">
+                        <div class="detail-label qualification-label">Qualification</div>
+                        <div class="detail-value">@Profile.Qualification</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer-section">
+            <div class="last-updated">Last updated: @Profile.LastUpdated.ToString("M/d/yyyy")</div>
+            <button class="edit-profile-btn" @onclick="HandleEdit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 19H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16.5 3.5C16.8978 3.10217 17.4374 2.87866 18 2.87866C18.5626 2.87866 19.1022 3.10217 19.5 3.5C19.8978 3.89782 20.1213 4.43739 20.1213 5C20.1213 5.56261 19.8978 6.10217 19.5 6.5L7 19L3 20L4 16L16.5 3.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Edit Profile
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(15, 23, 42, 0.35);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        padding: 2rem;
+    }
+
+    .profile-view-modal {
+        background: #ffffff;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 750px;
+        max-height: calc(100vh - 4rem);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .modal-header-section {
+        background: linear-gradient(180deg, #4994FF 0%, #3B7DE6 100%);
+        padding: 1.25rem 1.5rem;
+        color: white;
+        position: relative;
+        border-radius: 16px 16px 0 0;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        flex-shrink: 0;
+    }
+
+    .profile-header-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin: 0 auto 0.75rem 0;
+    }
+
+    .profile-header-icon svg {
+        width: 32px;
+        height: 32px;
+        color: #4994FF;
+    }
+
+    .profile-header-info {
+        text-align: left;
+        width: 100%;
+    }
+
+    .profile-header-title-prefix {
+        font-size: 12px;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+        opacity: 0.9;
+    }
+
+    .profile-header-specialty {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .profile-header-qualification {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 0.5rem;
+        font-size: 12px;
+        font-weight: 500;
+        opacity: 0.9;
+    }
+
+    .modal-close-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        border: none;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    .modal-close-btn:hover {
+        background: rgba(255, 255, 255, 0.4);
+    }
+
+    .modal-content-section {
+        padding: 1.25rem 1.5rem;
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+    }
+
+    .content-section {
+        margin-bottom: 1.25rem;
+    }
+
+    .content-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .section-icon {
+        width: 16px;
+        height: 16px;
+        color: #4994FF;
+    }
+
+    .section-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #111827;
+        margin: 0;
+    }
+
+    .section-content {
+        padding: 0.75rem;
+        background: #F9FAFB;
+        border-radius: 10px;
+    }
+
+    .organization-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 0.5rem;
+    }
+
+    .location-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 12px;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+    }
+
+    .location-pin-icon {
+        width: 16px;
+        height: 16px;
+        color: #6b7280;
+    }
+
+    .view-map-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #4994FF;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .view-map-link:hover {
+        color: #357abd;
+    }
+
+    .map-link-icon {
+        width: 16px;
+        height: 16px;
+    }
+
+    .about-text {
+        font-size: 12px;
+        color: #6b7280;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    .professional-details-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .professional-details-grid .detail-card.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .detail-card {
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid;
+    }
+
+    .detail-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+    }
+
+    .detail-label.title-label {
+        color: #155DFC;
+    }
+
+    .detail-label.specialty-label {
+        color: #9810FA;
+    }
+
+    .detail-label.qualification-label {
+        color: #00A63E;
+    }
+
+    .detail-value {
+        font-size: 16px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .title-card {
+        background: #F0F7FF;
+        border-color: #B3D9FF;
+    }
+
+    .specialty-card {
+        background: #F5F3FF;
+        border-color: #DDD6FE;
+    }
+
+    .qualification-card {
+        background: #F0FDF4;
+        border-color: #BBF7D0;
+    }
+
+    .modal-footer-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #e5e7eb;
+        flex-shrink: 0;
+    }
+
+    .last-updated {
+        font-size: 11px;
+        color: #9ca3af;
+    }
+
+    .edit-profile-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.625rem 1.25rem;
+        background: #4994FF;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .edit-profile-btn:hover {
+        background: #357abd;
+    }
+
+    @@media (max-width: 1024px) {
+        .profile-view-modal {
+            max-width: 90vw;
+            height: calc(100vh - 2rem);
+            max-height: calc(100vh - 2rem);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .modal-backdrop {
+            padding: 0.5rem;
+        }
+
+        .profile-view-modal {
+            max-width: 95vw;
+            height: calc(100vh - 1rem);
+            max-height: calc(100vh - 1rem);
+            border-radius: 12px;
+        }
+
+        .modal-header-section {
+            padding: 1.5rem;
+        }
+
+        .profile-header-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1rem 0;
+        }
+
+        .profile-header-icon svg {
+            width: 30px;
+            height: 30px;
+        }
+
+        .profile-header-specialty {
+            font-size: 24px;
+        }
+
+        .modal-content-section {
+            padding: 1.5rem;
+        }
+
+        .section-content {
+            padding: 0.75rem;
+        }
+
+        .professional-details-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .modal-footer-section {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+        }
+
+        .edit-profile-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .profile-view-modal {
+            max-width: 100vw;
+            height: 100vh;
+            max-height: 100vh;
+            border-radius: 0;
+        }
+
+        .modal-backdrop {
+            padding: 0;
+        }
+    }
+</style>
+
+@code {
+    [Parameter]
+    public ProfessionalProfile Profile { get; set; } = new();
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback OnEdit { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && JSRuntime != null)
+        {
+            // Lock body scroll when modal opens
+            await JSRuntime.InvokeVoidAsync("smartRxModal.lockBodyScroll", true);
+        }
+    }
+
+    private async Task HandleClose()
+    {
+        // Unlock body scroll before closing
+        if (JSRuntime != null)
+        {
+            await JSRuntime.InvokeVoidAsync("smartRxModal.lockBodyScroll", false);
+        }
+        // Don't use ModalStateService to avoid conflict with FeedbackModal
+        await OnClose.InvokeAsync();
+    }
+
+    private void HandleEdit()
+    {
+        OnEdit.InvokeAsync();
+    }
+
+    public void Dispose()
+    {
+        // Unlock body scroll when component is disposed
+        // Using Task.Run to handle async operation in Dispose
+        if (JSRuntime != null)
+        {
+            _ = Task.Run(async () =>
+            {
+                await JSRuntime.InvokeVoidAsync("smartRxModal.lockBodyScroll", false);
+            });
+        }
+    }
+}

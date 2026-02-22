@@ -1377,6 +1377,48 @@
     }
 
     /* Responsive */
+    @@media (min-width: 1280px) and (max-width: 1366px) {
+        .results-page {
+            padding: 0 0 2rem;
+        }
+
+        .results-navbar-container,
+        .results-container {
+            padding: 0 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .risk-summary-cards {
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .risk-card {
+            padding: 1.25rem;
+        }
+
+        .risk-card-number {
+            font-size: 2rem;
+        }
+
+        .risk-card-label {
+            font-size: 0.9rem;
+        }
+
+        .overall-risk-card {
+            padding: 1.25rem;
+        }
+
+        .risk-section {
+            padding: 1.25rem;
+        }
+
+        .risk-section-title {
+            font-size: 1.15rem;
+        }
+    }
+
     @@media (max-width: 1440px) {
         .results-navbar-container,
         .results-container {
@@ -1416,12 +1458,12 @@
 
     @@media (max-width: 768px) {
         .results-page {
-            padding: 0 0 0.5rem;
+            padding: 0.5rem 0 1.5rem;
             min-height: auto;
-            height: calc(100vh - 150px);
-            max-height: calc(100vh - 150px);
-            overflow-y: auto;
-            overflow-x: hidden;
+        }
+
+        .results-container {
+            padding: 0 0.75rem;
         }
 
         .results-navbar {
@@ -1432,32 +1474,37 @@
 
         .results-navbar-container {
             padding: 0.75rem 1rem;
-            flex-wrap: wrap;
             gap: 0.75rem;
+            flex-direction: column;
+            align-items: stretch;
         }
 
         .nav-back-button {
-            font-size: 0.8rem;
-            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            padding: 0.5rem;
+        }
+
+        .nav-back-button svg {
+            width: 18px;
+            height: 18px;
         }
 
         .nav-actions {
-            flex-direction: row;
+            flex-direction: column;
             gap: 0.5rem;
             width: 100%;
         }
 
         .nav-action-button {
-            flex: 1;
-            padding: 0.5rem 1rem;
-            font-size: 0.8rem;
+            width: 100%;
+            padding: 0.625rem 1rem;
+            font-size: 0.875rem;
             justify-content: center;
         }
 
-        .results-container {
-            padding: 0 1rem;
-            max-height: calc(100vh - 250px);
-            overflow-y: auto;
+        .nav-action-button svg {
+            width: 18px;
+            height: 18px;
         }
 
         .risk-summary-cards {
@@ -1471,14 +1518,6 @@
             gap: 0.5rem;
         }
 
-        .risk-card-number {
-            font-size: 1.25rem;
-        }
-
-        .risk-card-label {
-            font-size: 0.7rem;
-        }
-
         .risk-card-icon {
             width: 28px;
             height: 28px;
@@ -1488,6 +1527,14 @@
         .risk-card-icon img {
             width: 14px;
             height: 14px;
+        }
+
+        .risk-card-number {
+            font-size: 1.25rem;
+        }
+
+        .risk-card-label {
+            font-size: 0.7rem;
         }
 
         .overall-risk-banner {

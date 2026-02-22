@@ -1,0 +1,704 @@
+@page "/dashboard/profiles"
+@layout DashboardLayout
+@inject NavigationManager Navigation
+@inject HttpClient? Http
+@using SmartRx_DrugChecker.Services
+@using SmartRx_DrugChecker.Models
+@implements IDisposable
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<div class="profiles-page">
+    <!-- Header Section -->
+    <div class="profiles-header-container">
+        <div class="profiles-header">
+            <div class="profiles-header-left">
+                <a href="/dashboard/drug-checker" class="back-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Back to Form
+                </a>
+                <h1 class="profiles-title">Professional Profiles</h1>
+            </div>
+            <div class="profiles-header-right">
+                <button class="add-profile-btn" @onclick="HandleAddProfile">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Add Profile
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Cards Grid -->
+    @if (isLoading)
+    {
+        <div style="text-align: center; padding: 4rem;">
+            <div style="font-size: 1.2rem; color: #666;">Loading profiles...</div>
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div style="text-align: center; padding: 4rem;">
+            <div style="font-size: 1.2rem; color: #EF4444;">@errorMessage</div>
+            <button type="button" @onclick="LoadProfilesAsync" style="margin-top: 1rem; padding: 0.75rem 1.5rem; background: #4994FF; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                Retry
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="profiles-grid">
+            @foreach (var profile in profiles)
+            {
+                <div class="profile-card">
+                    <div class="profile-card-header">
+                        <div class="profile-icon-wrapper">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="profile-icon">
+                                <path d="M20 7H4C2.89543 7 2 7.89543 2 9V19C2 20.1046 2.89543 21 4 21H20C21.1046 21 22 20.1046 22 19V9C22 7.89543 21.1046 7 20 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M16 21V13C16 11.8954 15.1046 11 14 11H10C8.89543 11 8 11.8954 8 13V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 7C13.6569 7 15 5.65685 15 4C15 2.34315 13.6569 1 12 1C10.3431 1 9 2.34315 9 4C9 5.65685 10.3431 7 12 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="profile-title-section">
+                            <div class="profile-title-prefix">@profile.Title</div>
+                            <div class="profile-specialty">@profile.Specialty</div>
+                            <div class="profile-qualification">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="qualification-icon">
+                                    <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span>@profile.Qualification</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile-card-body">
+                        <div class="profile-organization">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="organization-icon">
+                                <path d="M3 21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M5 21V7L13 2L21 7V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M9 9V21M15 9V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>@profile.Organization</span>
+                        </div>
+                        <div class="profile-location">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="location-icon">
+                                <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>@profile.Location</span>
+                        </div>
+                        <a href="@profile.MapUrl" target="_blank" class="view-map-link">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="map-icon">
+                                <path d="M1 6V22L8 18L16 22L23 18V2L16 6L8 2L1 6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M8 2V18M16 6V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>View on Map</span>
+                        </a>
+                        <p class="profile-description">@profile.About</p>
+                        <div class="profile-card-actions">
+                            <button class="edit-btn" @onclick="@(() => HandleEditProfile(profile))">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M18.5 2.50023C18.8978 2.10243 19.4374 1.87891 20 1.87891C20.5626 1.87891 21.1022 2.10243 21.5 2.50023C21.8978 2.89804 22.1213 3.43762 22.1213 4.00023C22.1213 4.56284 21.8978 5.10243 21.5 5.50023L12 15.0002L8 16.0002L9 12.0002L18.5 2.50023Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Edit
+                            </button>
+                            <button class="delete-btn" @onclick="@(() => HandleDeleteProfile(profile))">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M10 11V17M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Profile View/Edit Modal -->
+@if (isViewModalOpen && selectedProfile != null)
+{
+    <ProfileViewModal Profile="@selectedProfile" OnClose="CloseViewModal" OnEdit="HandleEditFromView" />
+}
+
+<!-- Profile Add Modal -->
+@if (isAddModalOpen)
+{
+    <ProfileAddModal OnClose="CloseAddModal" OnSave="HandleSaveProfile" />
+}
+
+<!-- Profile Edit Modal -->
+@if (isEditModalOpen && profileToEdit != null)
+{
+    <ProfileAddModal EditProfile="@profileToEdit" OnClose="CloseEditModal" OnSave="HandleUpdateProfile" OnBack="HandleBackFromEdit" />
+}
+
+<style>
+    .profiles-page {
+        padding: 4rem;
+        min-height: calc(100vh - 150px);
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: transparent;
+        position: relative;
+    }
+
+    .profiles-header-container {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        border-radius: 12px;
+        padding: 1.5rem 2rem;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+    }
+
+    .profiles-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .profiles-header-left {
+        flex: 1;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #4994FF;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 1rem;
+        transition: color 0.2s ease;
+    }
+
+    .back-link:hover {
+        color: #357abd;
+    }
+
+    .profiles-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: #111827;
+        margin: 0;
+    }
+
+    .add-profile-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: #4994FF;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .add-profile-btn:hover {
+        background: #357abd;
+        transform: translateY(-1px);
+    }
+
+    .profiles-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+    }
+
+    @@media (max-width: 1024px) {
+        .profiles-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .profiles-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .profile-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .profile-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .profile-card-header {
+        background: linear-gradient(180deg, #4994FF 0%, #3B7DE6 100%);
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+        color: white;
+    }
+
+    .profile-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        margin-left: 0;
+    }
+
+    .profile-icon {
+        width: 40px;
+        height: 40px;
+        color: #4994FF;
+    }
+
+    .profile-title-section {
+        width: 100%;
+    }
+
+    .profile-title-prefix {
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        opacity: 0.9;
+    }
+
+    .profile-specialty {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+    }
+
+    .profile-qualification {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 0.5rem;
+        font-size: 14px;
+        font-weight: 500;
+        opacity: 0.9;
+    }
+
+    .qualification-icon {
+        width: 16px;
+        height: 16px;
+    }
+
+    .profile-card-body {
+        padding: 1.5rem;
+        background: white;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .profile-organization {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 16px;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .organization-icon {
+        width: 16px;
+        height: 16px;
+        color: #6b7280;
+    }
+
+    .profile-location {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .location-icon {
+        width: 16px;
+        height: 16px;
+        color: #6b7280;
+    }
+
+    .view-map-link {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #4994FF;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .view-map-link:hover {
+        color: #357abd;
+    }
+
+    .map-icon {
+        width: 16px;
+        height: 16px;
+    }
+
+    .profile-description {
+        font-size: 14px;
+        color: #6b7280;
+        line-height: 1.6;
+        margin: 0.5rem 0;
+        flex: 1;
+    }
+
+    .profile-card-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .edit-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        background: #F3F4F6;
+        color: #6b7280;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .edit-btn:hover {
+        color: #4994FF;
+        background: #E5E7EB;
+    }
+
+    .delete-btn {
+        min-width: 80px;
+        width: auto;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #FEF2F2;
+        color: #EF4444;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        padding: 0.75rem 1rem;
+    }
+
+    .delete-btn:hover {
+        background: #FEE2E2;
+        color: #DC2626;
+    }
+
+    @@media (max-width: 768px) {
+        .profiles-page {
+            padding: 0.75rem;
+        }
+
+        .profiles-header-container {
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .profiles-title {
+            font-size: 20px;
+        }
+
+        .add-profile-btn {
+            padding: 0.625rem 1.25rem;
+            font-size: 12px;
+        }
+
+        .profiles-grid {
+            gap: 1rem;
+        }
+
+        .profile-card-header {
+            padding: 1.5rem;
+        }
+
+        .profile-icon-wrapper {
+            width: 60px;
+            height: 60px;
+        }
+
+        .profile-icon {
+            width: 30px;
+            height: 30px;
+        }
+
+        .profile-specialty {
+            font-size: 20px;
+        }
+
+        .profile-card-body {
+            padding: 1rem;
+        }
+    }
+</style>
+
+@code {
+    private List<ProfessionalProfile> profiles = new();
+    private bool isLoading = true;
+    private string? errorMessage;
+    private bool isViewModalOpen = false;
+    private bool isAddModalOpen = false;
+    private bool isEditModalOpen = false;
+    private ProfessionalProfile? selectedProfile;
+    private ProfessionalProfile? profileToEdit;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProfilesAsync();
+    }
+
+    private async Task LoadProfilesAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            // TODO: Replace with actual API endpoint
+            // var response = await Http.GetFromJsonAsync<List<ProfessionalProfile>>("/api/professional/profiles");
+            // if (response != null)
+            // {
+            //     profiles = response;
+            // }
+
+            // Fallback to mock data
+        await Task.Delay(300); // Simulate API delay
+        profiles = new List<ProfessionalProfile>
+        {
+            new ProfessionalProfile
+            {
+                Title = "Dr.",
+                Specialty = "Cardiology",
+                Qualification = "MD, FRCS",
+                Organization = "King Faisal Specialist Hospital",
+                Location = "Riyadh, Saudi Arabia",
+                MapUrl = "https://maps.google.com/?q=King+Faisal+Specialist+Hospital",
+                About = "Board-certified cardiologist with over 15 years experience in interventional cardiology and heart failure management. Specialized in...",
+                LastUpdated = DateTime.Now.AddDays(-5)
+            },
+            new ProfessionalProfile
+            {
+                Title = "Dr.",
+                Specialty = "Cardiology",
+                Qualification = "MD, FRCS",
+                Organization = "King Faisal Specialist Hospital",
+                Location = "Riyadh, Saudi Arabia",
+                MapUrl = "https://maps.google.com/?q=King+Faisal+Specialist+Hospital",
+                About = "Board-certified cardiologist with over 15 years experience in interventional cardiology and heart failure management. Specialized in...",
+                LastUpdated = DateTime.Now.AddDays(-5)
+            },
+            new ProfessionalProfile
+            {
+                Title = "Dr.",
+                Specialty = "Cardiology",
+                Qualification = "MD, FRCS",
+                Organization = "King Faisal Specialist Hospital",
+                Location = "Riyadh, Saudi Arabia",
+                MapUrl = "https://maps.google.com/?q=King+Faisal+Specialist+Hospital",
+                About = "Board-certified cardiologist with over 15 years experience in interventional cardiology and heart failure management. Specialized in...",
+                LastUpdated = DateTime.Now.AddDays(-5)
+            },
+            new ProfessionalProfile
+            {
+                Title = "Dr.",
+                Specialty = "Cardiology",
+                Qualification = "MD, FRCS",
+                Organization = "King Faisal Specialist Hospital",
+                Location = "Riyadh, Saudi Arabia",
+                MapUrl = "https://maps.google.com/?q=King+Faisal+Specialist+Hospital",
+                About = "Board-certified cardiologist with over 15 years experience in interventional cardiology and heart failure management. Specialized in...",
+                LastUpdated = DateTime.Now.AddDays(-5)
+            },
+            new ProfessionalProfile
+            {
+                Title = "Dr.",
+                Specialty = "Cardiology",
+                Qualification = "MD, FRCS",
+                Organization = "King Faisal Specialist Hospital",
+                Location = "Riyadh, Saudi Arabia",
+                MapUrl = "https://maps.google.com/?q=King+Faisal+Specialist+Hospital",
+                About = "Board-certified cardiologist with over 15 years experience in interventional cardiology and heart failure management. Specialized in...",
+                LastUpdated = DateTime.Now.AddDays(-5)
+            },
+            new ProfessionalProfile
+            {
+                Title = "Dr.",
+                Specialty = "Cardiology",
+                Qualification = "MD, FRCS",
+                Organization = "King Faisal Specialist Hospital",
+                Location = "Riyadh, Saudi Arabia",
+                MapUrl = "https://maps.google.com/?q=King+Faisal+Specialist+Hospital",
+                About = "Board-certified cardiologist with over 15 years experience in interventional cardiology and heart failure management. Specialized in...",
+                LastUpdated = DateTime.Now.AddDays(-5)
+            }
+        };
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading profiles: {ex.Message}";
+            Console.WriteLine(errorMessage);
+            profiles = new List<ProfessionalProfile>();
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        // Cleanup if needed
+    }
+
+    private void HandleAddProfile()
+    {
+        isAddModalOpen = true;
+        // Don't use ModalStateService to avoid conflict with FeedbackModal
+        StateHasChanged();
+    }
+
+    private void CloseAddModal()
+    {
+        isAddModalOpen = false;
+        // Don't use ModalStateService to avoid conflict with FeedbackModal
+        StateHasChanged();
+    }
+
+    private void HandleEditProfile(ProfessionalProfile profile)
+    {
+        selectedProfile = profile;
+        isViewModalOpen = true;
+        // Don't use ModalStateService to avoid conflict with FeedbackModal
+        StateHasChanged();
+    }
+
+    private void CloseViewModal()
+    {
+        isViewModalOpen = false;
+        selectedProfile = null;
+        // Don't use ModalStateService to avoid conflict with FeedbackModal
+        StateHasChanged();
+    }
+
+    private void HandleEditFromView()
+    {
+        // Close view modal and open edit modal with the selected profile
+        profileToEdit = selectedProfile;
+        isViewModalOpen = false;
+        isEditModalOpen = true;
+        StateHasChanged();
+    }
+
+    private void HandleBackFromEdit()
+    {
+        // Close edit modal and return to view modal
+        isEditModalOpen = false;
+        isViewModalOpen = true;
+        StateHasChanged();
+    }
+
+    private void CloseEditModal()
+    {
+        isEditModalOpen = false;
+        profileToEdit = null;
+        StateHasChanged();
+    }
+
+    private void HandleUpdateProfile(ProfessionalProfile updatedProfile)
+    {
+        // TODO: Replace with actual API endpoint
+        // var response = await Http.PutAsJsonAsync($"/api/professional/profiles/{updatedProfile.Id}", updatedProfile);
+        // if (response.IsSuccessStatusCode)
+        // {
+        //     var index = profiles.FindIndex(p => p.Id == updatedProfile.Id);
+        //     if (index >= 0)
+        //     {
+        //         profiles[index] = updatedProfile;
+        //         CloseEditModal();
+        //         await LoadProfilesAsync(); // Refresh list
+        //     }
+        // }
+
+        // Fallback: Update in local list
+        var index = profiles.FindIndex(p => p.Id == updatedProfile.Id);
+        if (index >= 0)
+        {
+            profiles[index] = updatedProfile;
+        }
+        CloseEditModal();
+        StateHasChanged();
+    }
+
+    private void HandleDeleteProfile(ProfessionalProfile profile)
+    {
+        // TODO: Add confirmation dialog
+        profiles.Remove(profile);
+        StateHasChanged();
+    }
+
+    private void HandleSaveProfile(ProfessionalProfile newProfile)
+    {
+        // TODO: Replace with actual API endpoint
+        // var response = await Http.PostAsJsonAsync("/api/professional/profiles", newProfile);
+        // if (response.IsSuccessStatusCode)
+        // {
+        //     var savedProfile = await response.Content.ReadFromJsonAsync<ProfessionalProfile>();
+        //     if (savedProfile != null)
+        //     {
+        //         profiles.Add(savedProfile);
+        //         CloseAddModal();
+        //         await LoadProfilesAsync(); // Refresh list
+        //     }
+        // }
+
+        // Fallback: Add to local list for now
+        profiles.Add(newProfile);
+        CloseAddModal();
+        StateHasChanged();
+    }
+}

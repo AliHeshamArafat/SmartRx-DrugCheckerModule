@@ -954,13 +954,131 @@
     @@media (max-width: 768px) {
         .calculator-modal {
             width: 100%;
-            margin: 0 1rem;
-            padding: 1.25rem 1.25rem 1rem;
+            margin: 0 0.5rem;
+            padding: 1rem;
+            max-height: calc(100vh - 2rem);
+            border-radius: 12px;
+        }
+
+        .calculator-modal-header {
+            margin-bottom: 1rem;
+        }
+
+        .calculator-modal-title {
+            font-size: 1rem;
+        }
+
+        .calculator-modal-body {
+            gap: 0.75rem;
+        }
+
+        .drug-note-banner {
+            padding: 0.625rem 0.75rem;
+            gap: 0.5rem;
+            border-radius: 8px;
+        }
+
+        .drug-note-icon {
+            width: 28px;
+            height: 28px;
+        }
+
+        .warning-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .drug-note-title {
+            font-size: 14px;
+            line-height: 20px;
+        }
+
+        .drug-note-subtitle {
+            font-size: 0.75rem;
+        }
+
+        .drug-main-card {
+            padding: 1rem;
+            border-radius: 12px;
+        }
+
+        .drug-main-name {
+            font-size: 1rem;
+        }
+
+        .drug-main-subtitle {
+            font-size: 0.75rem;
+        }
+
+        .drug-main-meta {
+            font-size: 0.7rem;
+        }
+
+        .drug-section-card {
+            margin-top: 0.5rem;
+            padding: 0.875rem 1rem;
+            border-radius: 12px;
+        }
+
+        .drug-section-header {
+            margin-bottom: 0.75rem;
+        }
+
+        .drug-section-header-left {
+            gap: 0.5rem;
+        }
+
+        .capsule-icon,
+        .people-icon,
+        .utensils-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .drug-section-title {
+            font-size: 0.875rem;
+        }
+
+        .drug-section-subtitle {
+            font-size: 0.7rem;
         }
 
         .drug-standard-grid {
             grid-template-columns: 1fr;
-            gap: 0.8rem;
+            gap: 0.75rem;
+            padding: 0.625rem 0 0.75rem;
+            margin-bottom: 0.625rem;
+        }
+
+        .drug-standard-column-row {
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .drug-standard-label {
+            font-size: 12px;
+            margin-bottom: 0.25rem;
+        }
+
+        .label-icon {
+            width: 14px;
+            height: 14px;
+        }
+
+        .drug-standard-list {
+            padding-left: 1.5rem;
+            font-size: 0.75rem;
+            gap: 0.1rem;
+        }
+
+        .drug-standard-value {
+            margin-left: 20px;
+            font-size: 12px;
+        }
+
+        .drug-dose-table {
+            border-radius: 8px;
+            font-size: 0.75rem;
         }
 
         .drug-dose-table-header {
@@ -971,13 +1089,82 @@
         .drug-dose-row.muted {
             grid-template-columns: 1.8fr 1fr;
             grid-template-rows: auto auto auto;
-            row-gap: 0.35rem;
+            row-gap: 0.25rem;
+            padding: 0.5rem 0.75rem;
         }
 
-        .drug-dose-cell:nth-child(2),
-        .drug-dose-cell:nth-child(3),
-        .drug-dose-cell:nth-child(4) {
-            font-size: 0.78rem;
+        .drug-dose-row-title {
+            font-size: 0.75rem;
+        }
+
+        .drug-dose-row-subtitle {
+            font-size: 0.7rem;
+        }
+
+        .drug-dose-cell {
+            font-size: 0.7rem;
+        }
+
+        .drug-adjustment-block {
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+        }
+
+        .drug-adjustment-title {
+            font-size: 14px;
+            line-height: 20px;
+        }
+
+        .drop-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .drug-adjustment-card-wrapper {
+            gap: 0.5rem;
+        }
+
+        .drug-adjustment-card {
+            padding: 0.5rem 0.625rem;
+            font-size: 0.75rem;
+        }
+
+        .drug-adjustment-badge {
+            font-size: 12px;
+            padding: 0.1rem 0.375rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .drug-adjustment-status {
+            font-size: 12px;
+            margin-bottom: 0.1rem;
+        }
+
+        .status-icon {
+            width: 14px;
+            height: 14px;
+        }
+
+        .hepatic-caution-title {
+            font-size: 0.8rem;
+            margin-bottom: 0.375rem;
+        }
+
+        .warning-icon-small {
+            width: 14px;
+            height: 14px;
+        }
+
+        .hepatic-monitor-text {
+            font-size: 0.75rem;
+            margin-left: 1.25rem;
+        }
+
+        .drug-admin-list {
+            padding-left: 1rem;
+            font-size: 0.75rem;
+            gap: 0.1rem;
         }
     }
 </style>

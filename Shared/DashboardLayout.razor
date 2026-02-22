@@ -1,5 +1,7 @@
 @inherits LayoutComponentBase
 @using Microsoft.AspNetCore.Components.Routing
+@using SmartRx_DrugChecker.Services
+@inject UserService UserService
 
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -34,10 +36,20 @@
 
             <div class="nav-separator"></div>
 
-            <NavLink href="/dashboard/organization" class="nav-item" Match="NavLinkMatch.Prefix">
-                <img src="images/Organization.svg" alt="" class="nav-icon" />
-                <span>Organization</span>
-            </NavLink>
+            @if (UserService.IsOrganization)
+            {
+                <NavLink href="/dashboard/organization" class="nav-item" Match="NavLinkMatch.Prefix">
+                    <img src="images/Organization.svg" alt="" class="nav-icon" />
+                    <span>Organization</span>
+                </NavLink>
+            }
+            else if (UserService.IsProfessional)
+            {
+                <NavLink href="/dashboard/profiles" class="nav-item" Match="NavLinkMatch.Prefix">
+                    <img src="images/Organization.svg" alt="" class="nav-icon" />
+                    <span>Profiles</span>
+                </NavLink>
+            }
 
             <NavLink href="/dashboard/pricing" class="nav-item" Match="NavLinkMatch.Prefix">
                 <img src="images/Document.svg" alt="" class="nav-icon" />

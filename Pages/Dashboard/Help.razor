@@ -32,7 +32,7 @@
 
     <!-- Stats Cards -->
     <div class="stats-cards">
-        <div class="stat-card">
+        <div class="stat-card stat-card-drug">
             <div class="stat-icon-container stat-icon-drug">
                 <img src="images/Capsule.png" alt="" class="stat-icon-image" />
             </div>
@@ -41,7 +41,7 @@
                 <div class="stat-label">Drug Interactions</div>
             </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card stat-card-providers">
             <div class="stat-icon-container stat-icon-providers">
                 <img src="images/People.svg" alt="" class="stat-icon-image" />
             </div>
@@ -50,7 +50,7 @@
                 <div class="stat-label">Healthcare Providers</div>
             </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card stat-card-accuracy">
             <div class="stat-icon-container stat-icon-accuracy">
                 <img src="images/Shield.svg" alt="" class="stat-icon-image" />
             </div>
@@ -77,18 +77,20 @@
             <div class="faq-items">
                 @foreach (var item in generalQuestions)
                 {
-                    <div class="faq-item" @onclick="() => ToggleFaq(item)">
-                        <span class="faq-question">@item.Question</span>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="faq-chevron @(item.IsOpen ? "open" : "")">
-                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                    @if (item.IsOpen)
-                    {
-                        <div class="faq-answer">
-                            <p>@item.Answer</p>
+                    <div class="faq-accordion-item @(item.IsOpen ? "open" : "")">
+                        <div class="faq-accordion-header" @onclick="() => ToggleFaq(item)">
+                            <span class="faq-question">@item.Question</span>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="faq-chevron @(item.IsOpen ? "open" : "")">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </div>
-                    }
+                        @if (item.IsOpen)
+                        {
+                            <div class="faq-accordion-content">
+                                <p>@item.Answer</p>
+                            </div>
+                        }
+                    </div>
                 }
             </div>
         </div>
@@ -107,18 +109,20 @@
             <div class="faq-items">
                 @foreach (var item in accountPricingQuestions)
                 {
-                    <div class="faq-item" @onclick="() => ToggleFaq(item)">
-                        <span class="faq-question">@item.Question</span>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="faq-chevron @(item.IsOpen ? "open" : "")">
-                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                    @if (item.IsOpen)
-                    {
-                        <div class="faq-answer">
-                            <p>@item.Answer</p>
+                    <div class="faq-accordion-item @(item.IsOpen ? "open" : "")">
+                        <div class="faq-accordion-header" @onclick="() => ToggleFaq(item)">
+                            <span class="faq-question">@item.Question</span>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="faq-chevron @(item.IsOpen ? "open" : "")">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </div>
-                    }
+                        @if (item.IsOpen)
+                        {
+                            <div class="faq-accordion-content">
+                                <p>@item.Answer</p>
+                            </div>
+                        }
+                    </div>
                 }
             </div>
         </div>
@@ -302,9 +306,7 @@
     }
 
     .stat-card {
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(2px);
-        -webkit-backdrop-filter: blur(2px);
+        background: transparent;
         border: 2px solid #EFF6FF;
         border-radius: 14px;
         padding: 25px 25px 1px 25px;
@@ -315,6 +317,26 @@
         gap: 1rem;
         position: relative;
         box-sizing: border-box;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        background-color: white;
+    }
+
+    .stat-card.stat-card-drug:hover {
+        border-color: #4994FF;
+    }
+
+    .stat-card.stat-card-providers:hover {
+        border-color: #FFB050;
+    }
+
+    .stat-card.stat-card-accuracy:hover {
+        border-color: #00A63E;
     }
 
     .stat-icon-container {
@@ -410,7 +432,7 @@
         font-size: 24px;
         font-weight: 700;
         color: #111827;
-        margin: 0 0 0.5rem 0;
+        margin: 0;
     }
 
     .faq-section-description {
@@ -425,11 +447,25 @@
         gap: 0.75rem;
     }
 
-    .faq-item {
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(2px);
-        border: 1px solid rgba(0, 0, 0, 0.08);
+    .faq-accordion-item {
+        background: white;
+        border: 1px solid #e5e7eb;
         border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .faq-accordion-item:hover {
+        border-color: #4994FF;
+        box-shadow: 0 2px 8px rgba(73, 148, 255, 0.1);
+    }
+
+    .faq-accordion-item.open {
+        border-color: #4994FF;
+    }
+
+    .faq-accordion-header {
+        background: white;
         padding: 1.25rem 1.5rem;
         display: flex;
         justify-content: space-between;
@@ -438,14 +474,17 @@
         transition: all 0.3s ease;
     }
 
-    .faq-item:hover {
-        background: rgba(255, 255, 255, 0.25);
-        border-color: rgba(0, 0, 0, 0.12);
+    .faq-accordion-header:hover {
+        background: #f9fafb;
+    }
+
+    .faq-accordion-item.open .faq-accordion-header {
+        border-bottom: 1px solid #e5e7eb;
     }
 
     .faq-question {
         font-size: 16px;
-        font-weight: 500;
+        font-weight: 600;
         color: #111827;
         flex: 1;
     }
@@ -453,26 +492,23 @@
     .faq-chevron {
         width: 20px;
         height: 20px;
-        color: #6b7280;
+        color: #9ca3af;
         transition: transform 0.3s ease;
         flex-shrink: 0;
     }
 
-    .faq-chevron.open {
+    .faq-accordion-item.open .faq-chevron {
+        color: #4994FF;
         transform: rotate(180deg);
     }
 
-    .faq-answer {
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(2px);
-        border: 1px solid rgba(0, 0, 0, 0.08);
-        border-radius: 12px;
+    .faq-accordion-content {
         padding: 1.25rem 1.5rem;
-        margin-top: 0.5rem;
+        background: white;
         animation: slideDown 0.3s ease;
     }
 
-    .faq-answer p {
+    .faq-accordion-content p {
         font-size: 14px;
         color: #6b7280;
         line-height: 1.6;
@@ -655,6 +691,64 @@
         box-shadow: 0 4px 12px rgba(74, 144, 255, 0.3);
     }
 
+    @@media (min-width: 1280px) and (max-width: 1366px) {
+        .help-page {
+            padding: 2rem 2.5rem 3rem 2.5rem;
+        }
+
+        .hero-section {
+            padding: 2.5rem 2rem 3.5rem;
+            min-height: 450px;
+        }
+
+        .hero-title {
+            font-size: 38px;
+            margin-bottom: 0.875rem;
+        }
+
+        .hero-subtitle {
+            font-size: 17px;
+            margin-bottom: 1.75rem;
+        }
+
+        .question-icon-wrapper {
+            width: 75px;
+            height: 75px;
+            margin-bottom: 1.375rem;
+        }
+
+        .question-icon {
+            width: 44px;
+            height: 44px;
+        }
+
+        .search-input-wrapper {
+            max-width: 600px;
+        }
+
+        .search-input {
+            padding: 1rem 1rem 1rem 3rem;
+            font-size: 15px;
+        }
+
+        .stats-cards {
+            margin-top: -45px;
+            gap: 1.25rem;
+        }
+
+        .stat-card {
+            padding: 1.25rem;
+        }
+
+        .faq-section {
+            margin-bottom: 2rem;
+        }
+
+        .faq-section-title {
+            font-size: 1.375rem;
+        }
+    }
+
     @@media (max-width: 1024px) {
         .stats-cards {
             grid-template-columns: 1fr;
@@ -761,6 +855,10 @@
             min-height: 70px;
         }
 
+        .stat-card:hover {
+            transform: none;
+        }
+
         .stat-icon-container {
             width: 32px;
             height: 32px;
@@ -814,7 +912,7 @@
             gap: 0.5rem;
         }
 
-        .faq-item {
+        .faq-accordion-header {
             padding: 0.75rem 1rem;
         }
 
@@ -822,12 +920,11 @@
             font-size: 13px;
         }
 
-        .faq-answer {
+        .faq-accordion-content {
             padding: 0.75rem 1rem;
-            margin-top: 0.25rem;
         }
 
-        .faq-answer p {
+        .faq-accordion-content p {
             font-size: 12px;
             line-height: 1.5;
         }
@@ -983,7 +1080,7 @@
         new FAQItem
         {
             Question = "What is SmartRx Drug Interaction Checker?",
-            Answer = "SmartRx Drug Interaction Checker is a comprehensive tool that helps healthcare providers identify potential drug interactions, contraindications, and adverse effects when prescribing medications to patients."
+            Answer = "SmartRx is an advanced drug interaction and safety checker designed for healthcare professionals. It helps identify potential drug interactions, contraindications, and safety concerns when prescribing multiple medications. Our system provides comprehensive analysis including pregnancy/breastfeeding safety, allergy checks, and diagnosis-based recommendations."
         },
         new FAQItem
         {
@@ -1017,7 +1114,7 @@
         new FAQItem
         {
             Question = "What is SmartRx Drug Interaction Checker?",
-            Answer = "SmartRx Drug Interaction Checker is a comprehensive tool that helps healthcare providers identify potential drug interactions, contraindications, and adverse effects when prescribing medications to patients."
+            Answer = "SmartRx is an advanced drug interaction and safety checker designed for healthcare professionals. It helps identify potential drug interactions, contraindications, and safety concerns when prescribing multiple medications. Our system provides comprehensive analysis including pregnancy/breastfeeding safety, allergy checks, and diagnosis-based recommendations."
         },
         new FAQItem
         {

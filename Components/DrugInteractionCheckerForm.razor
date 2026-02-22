@@ -1,4 +1,5 @@
 @using SmartRx_DrugChecker.Pages
+@implements IDisposable
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
@@ -280,8 +281,26 @@
             </div>
             
             <!-- Ads Container -->
-            <div class="ads-container">
-                <!-- Ads will be inserted here as images -->
+            <div class="ads-container" @onmouseenter="PauseAutoScroll" @onmouseleave="ResumeAutoScroll">
+                <div class="ads-carousel-wrapper">
+                    <div class="ads-carousel" style="transform: translateY(-@(currentAdIndex * 100)%);">
+                        @foreach (var ad in ads)
+                        {
+                            <div class="ad-item">
+                                <img src="@ad" alt="Advertisement" />
+                            </div>
+                        }
+                    </div>
+                </div>
+                @if (ads.Count > 1)
+                {
+                    <div class="ads-indicators">
+                        @for (int i = 0; i < ads.Count; i++)
+                        {
+                            <span class="ads-indicator @(i == currentAdIndex ? "active" : "")" @onclick="() => GoToAd(i)"></span>
+                        }
+                    </div>
+                }
             </div>
         </div>
     </div>
@@ -337,6 +356,17 @@
     // Plan and Tokens (TODO: Replace with actual data from API/service)
     private string CurrentPlan { get; set; } = "Individual";
     private int TokensRemaining { get; set; } = 150;
+
+    // Ads carousel
+    private List<string> ads = new()
+    {
+        "images/ad1.jpg", // Replace with actual ad image paths
+        "images/ad2.jpg",
+        "images/ad3.jpg"
+    };
+    private int currentAdIndex = 0;
+    private System.Threading.Timer? autoScrollTimer;
+    private bool isAutoScrollPaused = false;
 
     private string DrugSearchQuery
     {
@@ -571,7 +601,7 @@
         allergies.Remove(allergy);
     }
 
-    private async Task CheckDrugSafety()
+    private void CheckDrugSafety()
     {
         // Collect all the form data
         var formData = new
@@ -609,6 +639,52 @@
         drugSearchQuery = "";
         conditionSearchQuery = "";
         allergySearchQuery = "";
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && ads.Count > 1)
+        {
+            StartAutoScroll();
+        }
+    }
+
+    private void StartAutoScroll()
+    {
+        if (ads.Count <= 1) return;
+        
+        autoScrollTimer = new System.Threading.Timer(_ =>
+        {
+            if (!isAutoScrollPaused)
+            {
+                InvokeAsync(() =>
+                {
+                    currentAdIndex = (currentAdIndex + 1) % ads.Count;
+                    StateHasChanged();
+                });
+            }
+        }, null, TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(3));
+    }
+
+    private void PauseAutoScroll()
+    {
+        isAutoScrollPaused = true;
+    }
+
+    private void ResumeAutoScroll()
+    {
+        isAutoScrollPaused = false;
+    }
+
+    private void GoToAd(int index)
+    {
+        currentAdIndex = index;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        autoScrollTimer?.Dispose();
     }
 }
 
@@ -714,6 +790,37 @@
         align-items: start;
         position: relative;
         z-index: 1;
+    }
+
+    @@media (min-width: 1280px) and (max-width: 1366px) {
+        .form-container {
+            gap: 1.5rem;
+            padding: 0 1rem;
+        }
+
+        .form-section {
+            padding: 1.25rem;
+        }
+
+        .section-title {
+            font-size: 1.15rem;
+        }
+
+        .right-panel-wrapper {
+            top: 100px;
+        }
+
+        .summary-panel {
+            padding: 1.125rem;
+        }
+
+        .ads-container {
+            min-height: 280px;
+        }
+
+        .ads-carousel-wrapper {
+            height: 280px;
+        }
     }
 
     .right-panel-wrapper {
@@ -1366,19 +1473,74 @@
         padding: 1rem;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         border: 1px solid rgba(0, 0, 0, 0.08);
-        min-height: 200px;
+        min-height: 300px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         gap: 1rem;
+        position: relative;
+        overflow: hidden;
     }
 
-    .ads-container img {
+    .ads-carousel-wrapper {
+        width: 100%;
+        height: 300px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .ads-carousel {
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.5s ease-in-out;
+        height: 100%;
+    }
+
+    .ad-item {
+        flex: 0 0 100%;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+    }
+
+    .ad-item img {
         max-width: 100%;
+        max-height: 100%;
+        width: auto;
         height: auto;
         border-radius: 8px;
         object-fit: contain;
+    }
+
+    .ads-indicators {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        align-items: center;
+        margin-top: 0.5rem;
+    }
+
+    .ads-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .ads-indicator:hover {
+        background: rgba(0, 0, 0, 0.4);
+    }
+
+    .ads-indicator.active {
+        background: #4994FF;
+        width: 10px;
+        height: 10px;
     }
 
     @@media (max-width: 1024px) {
@@ -1394,21 +1556,226 @@
 
     @@media (max-width: 768px) {
         .drug-interaction-form-page {
+            padding: 1rem 0.75rem;
+            min-height: auto;
+        }
+
+        .plan-banner {
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+        }
+
+        .plan-banner-content {
+            gap: 0.75rem;
+        }
+
+        .plan-label,
+        .tokens-label {
+            font-size: 0.75rem;
+        }
+
+        .plan-name,
+        .tokens-count {
+            font-size: 1rem;
+        }
+
+        .form-container {
+            gap: 1rem;
+        }
+
+        .form-section {
             padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-radius: 8px;
+        }
+
+        .section-header {
+            margin-bottom: 0.75rem;
+            gap: 0.5rem;
+        }
+
+        .section-icon {
+            width: 36px;
+            height: 36px;
+            padding: 6px;
+        }
+
+        .section-icon svg,
+        .section-icon img {
+            width: 16px;
+            height: 16px;
+        }
+
+        .section-title {
+            font-size: 1rem;
         }
 
         .form-grid {
             grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .form-group {
+            gap: 0.375rem;
+        }
+
+        .form-group label {
+            font-size: 0.8rem;
+        }
+
+        .form-input {
+            padding: 0.625rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .age-input {
+            padding: 0.625rem 0.375rem;
+        }
+
+        .age-label {
+            font-size: 0.65rem;
+        }
+
+        .search-container {
+            margin-bottom: 0.75rem;
+        }
+
+        .search-input {
+            padding: 0.625rem 2.5rem 0.625rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .search-icon-wrapper {
+            left: 0.75rem;
+        }
+
+        .drug-search-results {
+            max-height: 150px;
+        }
+
+        .drug-result-item {
+            padding: 0.625rem 0.75rem;
+        }
+
+        .drug-result-name {
+            font-size: 0.875rem;
+        }
+
+        .drug-result-generic {
+            font-size: 0.75rem;
+        }
+
+        .drug-item {
+            padding: 0.625rem 0.75rem;
+            margin-bottom: 0.375rem;
+        }
+
+        .drug-name {
+            font-size: 14px;
+            line-height: 20px;
+        }
+
+        .drug-generic {
+            font-size: 12px;
+        }
+
+        .checkbox-group {
+            gap: 0.75rem;
+        }
+
+        .checkbox-label {
+            font-size: 0.875rem;
+            gap: 0.5rem;
+        }
+
+        .custom-checkbox-mark {
+            width: 18px;
+            height: 18px;
+        }
+
+        .tags-container {
+            gap: 0.375rem;
+            margin-top: 0.75rem;
+        }
+
+        .tag {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            gap: 0.375rem;
+        }
+
+        .tag-remove {
+            width: 16px;
+            height: 16px;
+        }
+
+        .tag-remove svg {
+            width: 12px;
+            height: 12px;
         }
 
         .form-actions {
             flex-direction: column;
-            gap: 1rem;
+            gap: 0.75rem;
+            padding: 1rem 0;
         }
 
         .btn-check-safety {
             width: 100%;
+            padding: 0.875rem 1.5rem;
+            font-size: 0.9rem;
             justify-content: center;
+        }
+
+        .btn-clear {
+            font-size: 0.875rem;
+        }
+
+        .summary-panel {
+            padding: 1rem;
+        }
+
+        .summary-title {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .summary-items {
+            gap: 0.75rem;
+        }
+
+        .summary-item {
+            gap: 0.5rem;
+        }
+
+        .summary-icon {
+            width: 28px;
+            height: 28px;
+            padding: 5px;
+        }
+
+        .summary-icon svg,
+        .summary-icon img {
+            width: 16px;
+            height: 16px;
+        }
+
+        .summary-label {
+            font-size: 0.8rem;
+        }
+
+        .summary-count {
+            font-size: 0.9rem;
+        }
+
+        .summary-status {
+            font-size: 0.8rem;
+        }
+
+        .ads-container {
+            padding: 0.75rem;
+            min-height: 150px;
         }
     }
 </style>

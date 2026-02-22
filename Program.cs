@@ -42,6 +42,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<SmartRx_DrugChecker.Services.MarketStateService>();
 builder.Services.AddSingleton<SmartRx_DrugChecker.Services.ModalStateService>();
+builder.Services.AddSingleton<SmartRx_DrugChecker.Services.UserService>();
 
 var app = builder.Build();
 
